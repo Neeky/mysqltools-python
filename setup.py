@@ -6,7 +6,7 @@ setup(name='mysqltools-python',
       packages=['mtls'],
       maintainer='Neeky',
       maintainer_email='neeky@live.com',
-      url='https://github.com/Neeky/python-mysqltools',
+      url='https://github.com/Neeky/mysqltools-python',
       install_requires=['mysql-connector-python>=8.0.12'],
       python_requires='>=3.1.*,'
       )
