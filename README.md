@@ -200,6 +200,9 @@ homepage:**http://www.sqlpy.com**
    |`-- OpenTables`                  | 对应open_tables 当前打开的表的数量                               | status |
    |`-- OpenedTableDefinitions`      | 对应opened_table_definitions 曾经缓存过的.frm文件数量             | status |
    |`-- OpenedTables`                | 对应opened_tables 曾经打开过的表                                 | status |
+   |`-- SlowQueries`                 | 对应slow_queries  慢查询的次数据                                 | status |
+   |`-- TableLocksImmediate`         | 对应table_locks_immediate 立即就可以获得表锁的次数                 | status |
+   |`-- TableLocksWaited`            | 对应table_ocks_waited 表锁等待的次数                             | status |    
    |`-- TableOpenCacheOverflows`     | 对应table_open_cache_overflows 表打开又关闭的次数                | status |
    |`-- ThreadsCached`               | 对应threads_cached 当前线程池中线程的数量                         | status |
    |`-- ThreadsConnected`            | 对应threads_connected 当前打开的连接                            | status |
@@ -218,9 +221,9 @@ homepage:**http://www.sqlpy.com**
    |`-- RplSemiSyncMasterNoTx`       | 没有收到半同步slave确认的事务数量                                  | status |
    |`-- RplSemiSyncMasterYesTx`      | 有收到半同步slave确认的事务数量                                    | status |
    |`-- RplSemiSyncSlaveStatus`      | slave的半同步状态                                               | status |
-   |`-- SlaveIORunning`              | IO线程的状态(-1:说明当前实例是master,0:非Yes,1:Yes)               | show slave status |
-   |`-- SlaveSQLRunning`             | SQL线程的状态(-1:说明当前实例是master,0:非Yes,1:Yes)              | show slave status |
-   |`-- SecondsBehindMaster`         | Seconds behind master                                         | show slave status 
+   |`-- SlaveIORunning`              | IO线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)               | show slave status |
+   |`-- SlaveSQLRunning`             | SQL线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)              | show slave status |
+   |`-- SecondsBehindMaster`         | 主从延时多久(-2:说明当前实例是master,-1:None,其它:延时的秒数)       | show slave status 
 
    **2): 监控工具mtlsmonitor的使用方式**
    ```
@@ -233,4 +236,42 @@ homepage:**http://www.sqlpy.com**
    ```
    0
    ```
+
+   **3): 与zabbix结合后的效果**
+   >cpu
+
+   <img src="./imgs/cpu.png">
+
+   >mem
+
+   <img src="./imgs/mem.png">
+
+   >net
+
+   <img src="./imgs/net.png">
+
+   >reads
+
+   <img src="./imgs/reads.png">
+
+   >writes
+
+   <img src="./imgs/writes.png">
+
+   >rs
+
+   <img src="./imgs/rs.png">
+
+   >transaction
+
+   <img src="./imgs/t.png">
+
+   >innodb
+
+   <img src="./imgs/ibrw.png">
+
+   **4):**
+
+   **在我的另一个项目`mysqltools`中是有把这个监控项与zabbix结合的，见`https://github.com/Neeky/mysqltools`**
+
    ---   

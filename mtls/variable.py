@@ -273,3 +273,26 @@ class InnodbBufferPoolDumpAtShutdown(VariableBase):
 class InnodbBufferPoolLoadAtStartup(VariableBase):
     variable_name="innodb_buffer_pool_load_at_startup"
     variable_type="bool"
+
+#----------------------------------------------------
+## 查询缓存相关
+#----------------------------------------------------
+class QueryCacheLimit(VariableBase):
+    variable_name="query_cache_limit"
+    variable_type="int"
+
+class QueryCacheMinResUnit(VariableBase):
+    variable_name="query_cache_min_res_unit"
+    variable_type="int"
+
+class QueryCacheSize(VariableBase):
+    variable_name="query_cache_size"
+    variable_type="int"
+
+class QueryCacheType(VariableBase):
+    variable_name="query_cache_type"
+    variable_type="str"
+
+class Version(VariableBase):
+    variable_name="version"
+    variable_type="str"
