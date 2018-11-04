@@ -331,7 +331,7 @@ homepage:**http://www.sqlpy.com**
    可以看到/tmp/s.log就是对应时间段内的慢查询
    ```bash
    # Time: 181022  0:03:43
-   # User@Host: user_qzone[user_qzone] @  [10.175.136.214]
+   # User@Host: user_app[user_app] @  [192.168.136.214]
    # Query_time: 0.515818  Lock_time: 0.000261 Rows_sent: 30  Rows_examined: 104
    SET timestamp=1540137823;
    SELECT xxx ... ... ...
