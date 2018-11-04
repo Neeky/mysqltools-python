@@ -50,7 +50,7 @@ class SlaveIORunning(ShowSlave):
     def _get_value(self):
         value = super()._get_value()
         if value == 'this node is master':
-            return -1 # 直接返回 -1 
+            return -2 # 直接返回 -2
         if value.upper() == 'YES':
             self._value = 1
             return self._value
@@ -68,7 +68,7 @@ class SlaveSQLRunning(ShowSlave):
     def _get_value(self):
         value = super()._get_value()
         if value == 'this node is master':
-            return -1 # 直接返回 -1 
+            return -2 # 直接返回 -2 
         if value.upper() == 'YES':
             self._value = 1
             return self._value
@@ -84,6 +84,11 @@ class SecondsBehindMaster(ShowSlave):
     def _get_value(self):
         value = super()._get_value()
         if value == 'this node is master':
-            return -1 # 直接返回 1 
+            return -2 # 直接返回 -2 
         else:
-            return value
+            try:
+                self._value = int(value)
+            except Exception as e:
+                return -1
+            else:
+                return self._value 

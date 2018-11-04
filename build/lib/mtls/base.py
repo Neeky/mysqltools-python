@@ -299,6 +299,53 @@ class ShowSlave(ConnectorBase):
         'Master_public_key_path':57,
         'Get_master_public_key':58
     }
+    dimensions_55 = {
+        'Slave_IO_State': 0,
+        'Master_Host': 1,
+        'Master_User': 2,
+        'Master_Port': 3,
+        'Connect_Retry': 4,
+        'Master_Log_File': 5,
+        'Read_Master_Log_Pos': 6,
+        'Relay_Log_File': 7,
+        'Relay_Log_Pos': 8,
+        'Relay_Master_Log_File': 9,
+        'Slave_IO_Running': 10,
+        'Slave_SQL_Running': 11,
+        'Replicate_Do_DB': 12, 
+        'Replicate_Ignore_DB': 13,
+        'Replicate_Do_Table': 14,
+        'Replicate_Ignore_Table': 15,
+        'Replicate_Wild_Do_Table': 16, 
+        'Replicate_Wild_Ignore_Table': 17,
+        'Last_Errno': 18,
+        'Last_Error': 19,
+        'Skip_Counter': 20,
+        'Exec_Master_Log_Pos': 21,
+        'Relay_Log_Space': 22,
+        'Until_Condition': 23,
+        'Until_Log_File': 24,
+        'Until_Log_Pos': 25,
+        'Master_SSL_Allowed': 26,
+        'Master_SSL_CA_File': 27, 
+        'Master_SSL_CA_Path': 28,
+        'Master_SSL_Cert': 29, 
+        'Master_SSL_Cipher': 30,
+        'Master_SSL_Key': 31, 
+        'Seconds_Behind_Master': 32,
+        'Master_SSL_Verify_Server_Cert': 33,
+        'Last_IO_Errno': 34,
+        'Last_IO_Error': 35,
+        'Last_SQL_Errno': 36,
+        'Last_SQL_Error': 37,
+        'Replicate_Ignore_Server_Ids': 38,
+        'Master_Server_Id': 39,
+        'Cur_Exec_Relay_Log_File': 40,
+        'Cur_Exec_Relay_Log_Pos': 41,
+        'Wanted_Purge_Relay_Log': 42,
+        'Purged_Relay_Log': 43
+    }
+
     def __init__(self,host='127.0.0.1',port=3306,user='mtsuser',password='mts10352',*args,**kw):
         super().__init__(host,port,user,password)
         self._value=None
@@ -308,6 +355,12 @@ class ShowSlave(ConnectorBase):
             return self._value
         else:
             try:
+                #适配mysql-5.5.x版本的show slave status;
+                self.cursor.execute("select @@version")
+                mysql_version,*_ = self.cursor.fetchone()
+                if '5.5' in mysql_version:
+                    self.dimensions = self.dimensions_55
+
                 self.cursor.execute("show slave status")    
                 data = self.cursor.fetchone()
                 if data == None:
@@ -322,8 +375,9 @@ class ShowSlave(ConnectorBase):
                 self.close()
                 exit()  
 
+    @property
     def value(self):
-        if self._value != None:
+        if self._value == None:
             self._value = self._get_value()
         return self._value
 

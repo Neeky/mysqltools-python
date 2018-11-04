@@ -482,6 +482,75 @@ class OpenedTables(StatuBase):
     """
     statu_name="Opened_Tables"
 
+class QcacheFreeBlocks(StatuBase):
+    """
+    The number of free memory blocks in the query cache
+    """
+    statu_name="Qcache_free_blocks"
+
+class QcacheFreeMemory(StatuBase):
+    """
+    The amount of free memory for the query cache
+    """
+    statu_name="Qcache_free_memory"
+
+class QcacheHits(StatuBase):
+    """
+    The number of query cache hits
+    """
+    statu_name="Qcache_hits"
+
+class QcacheInserts(StatuBase):
+    """
+    The number of queries added to the query cache.
+    """
+    statu_name="Qcache_inserts"
+
+class QcacheLowmemPrunes(StatuBase):
+    """
+    The number of queries that were deleted from the query cache because of low memory.
+    """
+    statu_name="Qcache_lowmem_prunes"
+
+class QcacheNotCached(StatuBase):
+    """
+    The number of noncached queries (not cacheable, or not cached due to the query_cache_type setting).
+    """
+    statu_name="Qcache_not_cached"
+
+class QcacheQueriesInCache(StatuBase):
+    """
+    The number of queries registered in the query cache.
+    """
+    statu_name="Qcache_queries_in_cache"
+
+class QcacheTotalBlocks(StatuBase):
+    """
+    The total number of blocks in the query cache.
+    """
+    statu_name="Qcache_total_blocks"
+
+class SlowQueries(StatuBase):
+    """
+    he number of queries that have taken more than long_query_time seconds. 
+    This counter increments regardless of whether the slow query log is enabled. For information about that log
+    """
+    statu_name="Slow_queries"
+
+class TableLocksImmediate(StatuBase):
+    """
+    The number of times that a request for a table lock could be granted immediately.
+    """
+    statu_name="Table_locks_immediate"
+
+class TableLocksWaited(StatuBase):
+    """The number of times that a request for a table lock could not be granted immediately and a wait was needed. 
+    If this is high and you have performance problems, you should first optimize your queries, 
+    and then either split your table or tables or use replication.
+    """
+    statu_name="Table_locks_waited"
+
+
 class TableOpenCacheOverflows(StatuBase):
     """
     The number of overflows for the open tables cache. This is the number of times, 

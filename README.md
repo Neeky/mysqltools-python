@@ -13,6 +13,7 @@ homepage:**http://www.sqlpy.com**
 - [关于](#关于)
 - [安装](#安装)
 - [监控](#监控)
+- [MySQL慢查询工具](#MySQL慢查询工具)
 
 
 ---
@@ -274,4 +275,95 @@ homepage:**http://www.sqlpy.com**
 
    **在我的另一个项目`mysqltools`中是有把这个监控项与zabbix结合的，见`https://github.com/Neeky/mysqltools`**
 
-   ---   
+   ---  
+
+## MySQL慢查询工具
+   **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtlslog这个命令行工具** 
+
+   **1): 查看mtlslog命令行帮助信息**
+   ```bash
+   mtlslog --help
+   usage: mtlslog [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
+                  [--endtime ENDTIME] [--charset CHARSET] [--top TOP]
+                  {log_slice,hot_table,hot_uid,hot_client}
+   
+   positional arguments:
+     {log_slice,hot_table,hot_uid,hot_client}
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --slow-log-file SLOW_LOG_FILE
+                           slow log file absolute path
+     --starttime STARTTIME
+                           slow log start time flag
+     --endtime ENDTIME     slow log end time flag
+     --charset CHARSET
+     --top TOP
+   ```
+   **mtlslog 有三个主要的功能 a): log_slice 它可以从慢查询日志中切出“特定时间段”内的那部分日志 b): hot_table 它可以系统慢查询中最频繁出现的表 c): 统计出最容易引起慢查询的客户端主机的ip**
+
+   ---
+
+   **2):log_slice 切出特定时间段内的慢查询**
+
+   a): 确定那些时间段内有慢查询产生
+   ```bash
+   cat slow_query.log | grep '# Time'
+   # Time: 181022  0:03:40
+   # Time: 181022  0:03:41
+   # Time: 181022  0:03:42
+   # Time: 181022  0:03:43
+   # Time: 181022  0:15:53
+   # Time: 181022  0:15:54
+   # Time: 181022  0:17:35
+   # Time: 181022  0:17:36
+   # Time: 181022  0:17:37
+   # Time: 181022  0:17:38
+
+   ```
+   
+   b): 通过mtlslog切出“# Time: 181022  0:03:43” 到 “# Time: 181022  0:15:53” 这个时段内的查询查询,并把日志保存到/tmp/s.log文件中
+   ```bash
+   mtlslog --slow-log-file=slow_query.log \
+    --starttime='# Time: 181022  0:03:43' --endtime='# Time: 181022  0:15:53' \
+    log_slice > /tmp/s.log
+   ```
+   可以看到/tmp/s.log就是对应时间段内的慢查询
+   ```bash
+   # Time: 181022  0:03:43
+   # User@Host: user_qzone[user_qzone] @  [10.175.136.214]
+   # Query_time: 0.515818  Lock_time: 0.000261 Rows_sent: 30  Rows_examined: 104
+   SET timestamp=1540137823;
+   SELECT xxx ... ... ...
+
+   ... ... ... 
+
+   UPDATE ... ... ... 
+   # Time: 181022  0:15:53
+   ```
+
+   **3): hot_table 统计慢查询中出现次数最多表名(默认top=7)**
+   ```bash
+   mtlslog --slow-log-file=/tmp/s.log hot_table
+   TABLE_NAME                       COUNTER
+   ------------------------------------------------
+    tempdb.sbtest01         101
+    tempdb.sbtest02         97
+    tempdb.sbtest03         64
+    tempdb.sbtest04         50
+    tempdb.sbtest05         30
+    tempdb.sbtest06         24
+    tempdb.sbtest07         1
+   ```
+
+   **4): hot_client 统计慢查询中出现的客户端的IP地址(默认top=7)**
+   ```bash
+   mtlslog --slow-log-file=/tmp/s.log hot_client
+   CLIENT_HOST_IP                   COUNTER
+   ------------------------------------------------
+   192.168.136.214                   270
+   192.168.136.216                   260
+   192.168.136.210                   100
+   ```
+   mtlslog 的定位是mysqldumpslow的一个补充
+   ---

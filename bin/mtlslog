@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+#-*- coding: UTF-8 -*-
+
+import re
+import argparse
+from collections import Counter
+
+def log_slice(args,slow_log_handler):
+    """对时间在 [--starttime,--endtime] 这段时间内的slow-log直接“切”出来，以方便后面的分析
+    """
+    _finde = False
+    _charset = args.charset
+    _starttime = args.starttime.encode(_charset)
+    _endtime = args.endtime.encode(_charset)
+    #迭代整个文件查找目标区间中的内容
+    for line in slow_log_handler:
+        #如果_find被标记为True，说明当前line正位于目标区间
+        if _finde == True:
+            #说明当前line位于目标区间，直接打印当前line，并判断是否已经到了退出的位置
+            print(line.decode(_charset),end='')
+            if _endtime in line:
+                break
+            continue
+        #判断是否已经进行目标区间
+        if _finde == False:
+            if _starttime in line:
+                _finde=True
+                print(line.decode(_charset),end='')
+
+def hot_table(args,slow_log_handler):
+    """对慢查询中涉及到的表进行统计
+    """
+    _charset = args.charset
+    c = Counter()
+    for line in slow_log_handler:
+        table_name = re.search(r" \S*\.\S* ",line.decode(_charset))
+        if table_name != None :
+            _is_digist = re.search(r"[0-9]{1,10}\.[0-9]{1,10}",table_name.group())
+            if _is_digist == None:
+                c.update({table_name.group():1})
+    #格式化输出
+    print("{0:<32} {1}".format("table_name".upper(),"counter".upper()))
+    print("-"*48)
+    for tbl,counter in c.most_common(args.top):
+        print("{0:<32} {1}".format(tbl,counter))
+
+def hot_uid(args,slow_log_handler):
+    """对慢查询中涉及到的FUId进行统计
+    """
+    c = Counter()
+    _charset = args.charset
+    for line in slow_log_handler:
+        #先去掉所有的单引号与双引号
+        _line = line.decode(_charset).replace(r"'","").replace(r'"','')
+        try:
+            all_fuid = re.findall(r"FUId = \d*",_line)
+            if len(all_fuid) > 0:
+                fuid = [target for target in all_fuid if len(target) > 7][0]
+                c.update({fuid:1})
+        except Exception as e:
+            print(e)
+            exit()
+    #格式化输出
+    print("{0:<32} {1}".format("FUId".upper(),"counter".upper()))
+    print("-"*48)
+    for uid,counter in c.most_common(args.top):
+        print("{0:<32} {1}".format(uid,counter))
+
+def hot_client(args,slow_log_handler):
+    """对慢查询中涉及到的连接的host信息进行统计
+    """
+    c = Counter()
+    _charset = args.charset
+    for line in slow_log_handler:
+        _line = line.decode(_charset)
+        if '# User@Host:' in _line :
+            *_,_host = _line.split()
+            host = _host[1:-1]
+            c.update({host:1})
+    #格式化输出
+    print("{0:<32} {1}".format("client_host_ip".upper(),"counter".upper()))
+    print("-"*48)
+    for host_ip,counter in c.most_common(args.top):
+        print("{0:<32} {1}".format(host_ip,counter))    
+
+
+
+operations = {
+    'log_slice':log_slice,
+    'hot_table':hot_table,
+    'hot_uid':hot_uid,
+    'hot_client':hot_client
+}
+
+
+
+if __name__=="__main__":
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--slow-log-file',help='slow log file absolute path')
+    parser.add_argument('--starttime',help='slow log start time flag')
+    parser.add_argument('--endtime',help='slow log end time flag')
+    parser.add_argument('--charset',default='latin1')
+    parser.add_argument('--top',default=7,type=int)
+
+    parser.add_argument('operation',choices=operations.keys())
+    args=parser.parse_args()
+    with open(args.slow_log_file,'br') as slow_log_handler:
+        operations[args.operation](args,slow_log_handler)
+
+

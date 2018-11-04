@@ -1,1 +1,1 @@
-
+name = "mysqltools-python"
