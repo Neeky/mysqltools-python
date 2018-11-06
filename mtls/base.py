@@ -10,7 +10,25 @@ __all__ = ['ConnectorBase','VariableBase','StatuBase','PsBase','ShowSlave']
 
 import mysql.connector
 import logging
+import subprocess
 
+def mysql_discovery():
+    """查找主机上的MySQL服务并返回它们的监听的port
+    """
+    output = subprocess.check_output(['netstat','-ltpn'])
+    output = output.decode('latin-1').split('\n')[2:-1]
+    result = {"data":[]}
+    try:
+        for line in output:
+            _,_,_,host_and_port,_,_,process_name,*_ = line.split()
+            if 'mysqld' in process_name:
+                index = host_and_port.rindex(":")
+                port = int(host_and_port[index+1:])
+                result['data'].append({'{#MYSQLPORT}':port})
+    except Exception as e:
+        print(e)
+        exit()
+    print(result)
 
 class ConnectorBase(object):
     """ConnectorBase代表一个与数据库之间的连接

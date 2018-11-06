@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-from mtls import statu,variable,mgr,replication
+from mtls import base,statu,variable,mgr,replication
 import argparse
 
 #---------------------------------------
@@ -180,7 +180,9 @@ basic_items={
     'ThreadsConnected':statu.ThreadsConnected,
     'ThreadsCreated':statu.ThreadsCreated,
     'ThreadsRunning':statu.ThreadsRunning,
-    'Uptime':statu.Uptime
+    'Uptime':statu.Uptime,
+    #为了支持zabbix的自动发现 返回数据类似：{'data': [{'{#MYSQLPORT}': 3306}]}
+    'discovery':base.mysql_discovery
 }
 
 #定义mysql主从复制时用到的监控项

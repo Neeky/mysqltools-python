@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='mysqltools-python',
-      version='2.18.10.12',
+      version='2.18.11.04',
       scripts=['bin/mtlsmonitor','bin/mtlsbackup','bin/mtlslog'],
       packages=['mtls'],
       maintainer='Neeky',
