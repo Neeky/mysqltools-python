@@ -224,7 +224,8 @@ homepage:**http://www.sqlpy.com**
    |`-- RplSemiSyncSlaveStatus`      | slave的半同步状态                                               | status |
    |`-- SlaveIORunning`              | IO线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)               | show slave status |
    |`-- SlaveSQLRunning`             | SQL线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)              | show slave status |
-   |`-- SecondsBehindMaster`         | 主从延时多久(-2:说明当前实例是master,-1:None,其它:延时的秒数)       | show slave status 
+   |`-- SecondsBehindMaster`         | 主从延时多久(-2:说明当前实例是master,-1:None,其它:延时的秒数)       | show slave status |
+   |`-- discovery`                   | zabbix Low-level discovery 接口                               | 用于自动发现        |
 
    **2): 监控工具mtlsmonitor的使用方式**
    ```
@@ -366,4 +367,5 @@ homepage:**http://www.sqlpy.com**
    192.168.136.210                   100
    ```
    mtlslog 的定位是mysqldumpslow的一个补充
+   
    ---
