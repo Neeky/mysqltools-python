@@ -12,7 +12,11 @@ import mysql.connector
 import logging
 import subprocess
 
-def mysql_discovery():
+class Discovery(object):
+    def __init__(self,value):
+        self.value = value
+
+def mysql_discovery(*args,**kwargs):
     """查找主机上的MySQL服务并返回它们的监听的port
     """
     output = subprocess.check_output(['netstat','-ltpn'])
@@ -28,7 +32,7 @@ def mysql_discovery():
     except Exception as e:
         print(e)
         exit()
-    print(result)
+    return Discovery(value=result)
 
 class ConnectorBase(object):
     """ConnectorBase代表一个与数据库之间的连接
