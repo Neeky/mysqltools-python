@@ -12,10 +12,16 @@ import mysql.connector
 import logging
 import subprocess
 import socket
+import json
 
 class Discovery(object):
     def __init__(self,value):
-        self.value = value
+        self._value = value
+
+    @property
+    def value(self):
+        return json.dumps(self._value)
+
 
 def is_mysql_port(port):
     """传入一个端口、如果这个端口是MySQL协议用的，那么就返回这个端口，如果不是就返回None
@@ -36,7 +42,7 @@ def is_mysql_port(port):
         client_socket.close()
 
 def mysql_discovery(*args,**kwargs):
-    """查找主机上的MySQL服务并返回它们的监听的port
+    """查找主机上的MySQL服务并返回它们的监听的port  {"data": [{"{#MYSQLPORT}": 3306}]}
     """
     output = subprocess.check_output(['netstat','-ltn'])
     output = output.decode('latin-1').split('\n')[2:-1]
@@ -49,11 +55,22 @@ def mysql_discovery(*args,**kwargs):
             port = int(host_and_port[index+1:])
             #只有在这个端口是被MySQL占用的情况下才返回
             if is_mysql_port(port):
-                result['data'].append({'{#MYSQLPORT}':port})
+                result["data"].append({"{#MYSQLPORT}":port})
     except Exception as e:
         print(e)
         exit()
     return Discovery(value=result)
+
+def disk_discovery(*args,**kwargs):
+    result = {"data":[]}
+    message = subprocess.check_output(['lsblk',])
+    message = message.decode('latin-1')
+    for line in message.split('\n'):
+        if 'disk' in line:
+            disk_name,*_ = line.split()
+            result['data'].append({"{#DISKNAME}":disk_name})
+    return Discovery(value=result)
+
 
 class ConnectorBase(object):
     """ConnectorBase代表一个与数据库之间的连接

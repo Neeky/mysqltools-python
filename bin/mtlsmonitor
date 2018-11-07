@@ -181,8 +181,9 @@ basic_items={
     'ThreadsCreated':statu.ThreadsCreated,
     'ThreadsRunning':statu.ThreadsRunning,
     'Uptime':statu.Uptime,
-    #为了支持zabbix的自动发现 返回数据类似：{'data': [{'{#MYSQLPORT}': 3306}]}
-    'discovery':base.mysql_discovery
+    #为了支持zabbix的自动发现 返回数据类似：{"data": [{"{#MYSQLPORT}": 3306}]}
+    'MySQLDiscovery':base.mysql_discovery,
+    'DiskDiscovery':base.disk_discovery
 }
 
 #定义mysql主从复制时用到的监控项
