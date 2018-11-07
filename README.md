@@ -225,7 +225,8 @@ homepage:**http://www.sqlpy.com**
    |`-- SlaveIORunning`              | IO线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)               | show slave status |
    |`-- SlaveSQLRunning`             | SQL线程的状态(-2:说明当前实例是master,0:非Yes,1:Yes)              | show slave status |
    |`-- SecondsBehindMaster`         | 主从延时多久(-2:说明当前实例是master,-1:None,其它:延时的秒数)       | show slave status |
-   |`-- discovery`                   | zabbix Low-level discovery 接口                               | 用于自动发现        |
+   |`-- MySQLDiscovery`              | zabbix Low-level discovery 接口   用于MySQL自动发现             |                   |
+   |`-- DiskDiscovery`               | zabbix Low-level discovery 接口   用于磁盘自动发现               |                   |
 
    **2): 监控工具mtlsmonitor的使用方式**
    ```
