@@ -11,23 +11,44 @@ __all__ = ['ConnectorBase','VariableBase','StatuBase','PsBase','ShowSlave']
 import mysql.connector
 import logging
 import subprocess
+import socket
 
 class Discovery(object):
     def __init__(self,value):
         self.value = value
 
+def is_mysql_port(port):
+    """传入一个端口、如果这个端口是MySQL协议用的，那么就返回这个端口，如果不是就返回None
+    """
+    client_socket = None
+    try:
+        client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        client_socket.connect(('127.0.0.1',port))
+        client_socket.settimeout(0.1)
+        #MySQL协议下是由Server端先发送握手信息到client的
+        message = client_socket.recv(1024)
+        message = message.decode('latin-1').lower()
+        if 'mysql' in message:
+            return port
+    except Exception as e:
+        return None
+    finally:
+        client_socket.close()
+
 def mysql_discovery(*args,**kwargs):
     """查找主机上的MySQL服务并返回它们的监听的port
     """
-    output = subprocess.check_output(['netstat','-ltpn'])
+    output = subprocess.check_output(['netstat','-ltn'])
     output = output.decode('latin-1').split('\n')[2:-1]
     result = {"data":[]}
+    ports = []
     try:
         for line in output:
-            _,_,_,host_and_port,_,_,process_name,*_ = line.split()
-            if 'mysqld' in process_name:
-                index = host_and_port.rindex(":")
-                port = int(host_and_port[index+1:])
+            _,_,_,host_and_port,*_ = line.split()
+            index = host_and_port.rindex(":")
+            port = int(host_and_port[index+1:])
+            #只有在这个端口是被MySQL占用的情况下才返回
+            if is_mysql_port(port):
                 result['data'].append({'{#MYSQLPORT}':port})
     except Exception as e:
         print(e)
