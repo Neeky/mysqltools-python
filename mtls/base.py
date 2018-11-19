@@ -34,7 +34,7 @@ def is_mysql_port(port):
         #MySQL协议下是由Server端先发送握手信息到client的
         message = client_socket.recv(1024)
         message = message.decode('latin-1').lower()
-        if 'mysql' in message:
+        if 'password' in message:
             return port
     except Exception as e:
         return None
