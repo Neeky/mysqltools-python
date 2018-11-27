@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-from mtls import base,statu,variable,mgr,replication
+from mtls import base,statu,variable,mgr,replication,binlog
 import argparse
 
 #---------------------------------------
@@ -83,6 +83,10 @@ basic_items={
     'QueryCacheMinResUnit':variable.QueryCacheMinResUnit,
     'QueryCacheSize':variable.QueryCacheSize,
     'QueryCacheType':variable.QueryCacheType,
+    'BinlogFile':binlog.BinlogFile,
+    'BinlogPosition':binlog.BinlogPosition,
+    'BinlogDoDB':binlog.BinlogDoDB,
+    'BinlogIgnoreDB':binlog.BinlogIgnoreDB,
 
     #定义mysql绝大多数status 主要用于性能监控
     'AbortedClients':statu.AbortedClients,
@@ -183,7 +187,8 @@ basic_items={
     'Uptime':statu.Uptime,
     #为了支持zabbix的自动发现 返回数据类似：{"data": [{"{#MYSQLPORT}": 3306}]}
     'MySQLDiscovery':base.mysql_discovery,
-    'DiskDiscovery':base.disk_discovery
+    'DiskDiscovery':base.disk_discovery,
+
 }
 
 #定义mysql主从复制时用到的监控项
@@ -245,5 +250,6 @@ if __name__=="__main__":
         exit()
     m=monitor_items[args.monitor_item_name](host=args.host,port=args.port,user=args.user,password=args.password,database=args.database)
     print(m.value)
+
 
 

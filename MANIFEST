@@ -6,6 +6,7 @@ bin/mtlslog
 bin/mtlsmonitor
 mtls/__init__.py
 mtls/base.py
+mtls/binlog.py
 mtls/innodb_statu.py
 mtls/inspection.py
 mtls/mgr.py

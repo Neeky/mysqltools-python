@@ -209,7 +209,9 @@ homepage:**http://www.sqlpy.com**
    |`-- ThreadsConnected`            | 对应threads_connected 当前打开的连接                            | status |
    |`-- ThreadsCreated`              | 对应threads_created   为了处理连接所创建的线程总数                 | status |
    |`-- ThreadsRunning`              | 对应threads_running   非sleep状态下的线程数                      | status |
-   |`-- Uptime`                      | 对应uptime 从启动开始到现在已经运行了多少秒                         | status |          
+   |`-- Uptime`                      | 对应uptime 从启动开始到现在已经运行了多少秒                         | status | 
+   |`-- BinlogFile`                  | 对应show master status 中的File列，追踪当前写的哪个binlog文件      | show master status |
+   |`-- BinlogPosition`              | 对应show master status 中的Position列，追踪当前binlog文件的大小    | show master status |          
    |`-- MgrTotalMemberCount`         | mgr集群中成员的数量                                             | p_s    |
    |`-- MgrOnLineMemberCount`        | mgr集群中online状态下的成员数量                                  | p_s    |
    |`-- MgrMemberState`              | 当前mgr成员的状态                                               | p_s    | 

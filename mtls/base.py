@@ -108,44 +108,10 @@ class ConnectorBase(object):
                 return self._cursor
             except Exception as e:
                 error_message=str(e)
-                self.logger.info(e)
+                self.logger.info(error_message)
                 self.logger.info("exit")
                 self.close()
                 exit()
-
-    #def format_string_value(self,raw_value):
-    #    if isinstance(raw_value,str):
-    #        return raw_value
-    #    else:
-    #        self.logger.info(raw_value)
-    #        return 'invalidate str value'
-
-    #def format_byte_value(self,raw_value):
-    #    if isinstance(raw_value,int):
-    #        kb_raw_value=raw_value/1024
-    #        if kb_raw_value >1024:
-    #            mb_raw_value=kb_raw_value/1024
-    #            if mb_raw_value>1024:
-    #                gb_raw_value=mb_raw_value/1024
-    #                if gb_raw_value >1024:
-    #                    return "{0}TB".format(gb_raw_value/1024)
-    #                else:
-    #                    return "{0}GB".format(gb_raw_value)
-    #            else:
-    #                return "{0}MB".format(mb_raw_value)
-    #        else:
-    #            return "{0}KB".format(kb_raw_value)
-    #    else:
-    #        return "invalidate byte value"
-
-    #def format_intger_value(self,raw_value):
-    #    return int(raw_value)
-
-    #def format_bool_value(self,raw_value):
-    #    if raw_value in ['off',0]:
-    #        return 'OFF'
-    #    else:
-    #        return 'ON'
     
     @property
     def logger(self):
@@ -171,8 +137,6 @@ class ConnectorBase(object):
     def __del__(self):
         """资源回收
         """
-        #Object 类中没有__del__相关的方法
-        #super(ConnectorBase,self).__del__()
         if self._cnx != None:
             self._cnx.close()
     
@@ -441,6 +405,43 @@ class ShowSlave(ConnectorBase):
             self._value = self._get_value()
         return self._value
 
-    #@property
-    #def original_value(self):
-    #    return self._get_value()
+
+
+
+class ShowMaster(ConnectorBase):
+    """分析show master status 的输出
+    """
+    show_master_name = None
+    dimensions = {
+        'File':0,
+        'Position':1,
+        'Binlog_Do_DB':2,
+        'Binlog_Ignore_DB':3,
+        'Executed_Gtid_Set':4,
+    }
+
+    def __init__(self,host='127.0.0.1',port=3306,user='mtsuser',password='mts10352',*args,**kw):
+        super().__init__(host,port,user,password)
+        self._value=None
+
+    def _get_value(self):
+        if self._value != None:
+            return self._value
+        else:
+            try:
+                self.cursor.execute("show master status")    
+                data = self.cursor.fetchone()
+                index = self.dimensions[self.show_master_name]
+                self._value = data[index]
+                return self._value
+            except Exception as e:
+                error_message=str(e)
+                self.logger.info(error_message)
+                self.close()
+                exit()  
+
+    @property
+    def value(self):
+        if self._value == None:
+            self._value = self._get_value()
+        return self._value  
