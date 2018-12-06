@@ -90,6 +90,15 @@ class ComInsertSelect(StatuBase):
 class ComSelect(StatuBase):
     statu_name="Com_select"
 
+class ComCreateTable(StatuBase):
+    statu_name="Com_create_table"
+
+class ComDropTable(StatuBase):
+    statu_name="Com_drop_table"
+
+class ComRenameTable(StatuBase):
+    statu_name="Com_rename_table"
+
 class SelectFullJoin(StatuBase):
     """The number of joins that perform table scans because they do not use indexes. 
     If this value is not 0, you should carefully check the indexes of your tables.
