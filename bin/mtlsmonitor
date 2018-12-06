@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-from mtls import base,statu,variable,mgr,replication,binlog
+from mtls import base,statu,variable,mgr,replication,binlog,innodb_statu
 import argparse
 
 #---------------------------------------
@@ -83,10 +83,16 @@ basic_items={
     'QueryCacheMinResUnit':variable.QueryCacheMinResUnit,
     'QueryCacheSize':variable.QueryCacheSize,
     'QueryCacheType':variable.QueryCacheType,
+    #Binlog写入性能
     'BinlogFile':binlog.BinlogFile,
     'BinlogPosition':binlog.BinlogPosition,
     'BinlogDoDB':binlog.BinlogDoDB,
     'BinlogIgnoreDB':binlog.BinlogIgnoreDB,
+    #Innodb LSN、CheckPoint、LogFlushUpTo ...
+    'LogSequenceNumber':innodb_statu.LogSequenceNumber,
+    'LogFlushedUpTo':innodb_statu.LogFlushedUpTo,
+    'PagesFlushedUpTo':innodb_statu.PagesFlushedUpTo,
+    'LastCheckpointAt':innodb_statu.LastCheckpointAt,
 
     #定义mysql绝大多数status 主要用于性能监控
     'AbortedClients':statu.AbortedClients,
@@ -114,9 +120,14 @@ basic_items={
     'ComUpdate':statu.ComUpdate,
     'ComUpdateMulti':statu.ComUpdateMulti,
     'Connections':statu.Connections,
+    #DDL操作
     'CreatedTmpDiskTables':statu.CreatedTmpDiskTables,
     'CreatedTmpFiles':statu.CreatedTmpFiles,
     'CreatedTmpTables':statu.CreatedTmpTables,
+    'ComCreateTable':statu.ComCreateTable,
+    'ComDropTable':statu.ComDropTable,
+    'ComRenameTable':statu.ComRenameTable,
+    
     'InnodbBufferPoolDumpStatus':statu.InnodbBufferPoolDumpStatus,
     'InnodbBufferPoolLoadStatus':statu.InnodbBufferPoolLoadStatus,
     'InnodbBufferPoolResizeStatus':statu.InnodbBufferPoolResizeStatus,

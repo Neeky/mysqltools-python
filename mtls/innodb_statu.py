@@ -1,7 +1,16 @@
-from .base import ConnectorBase
+from .base import InnodbStatus,InnodbStatusLog
 
-class InnodbStatuBase(ConnectorBase):
-    
-    def show_engine_innodb_status(self):
-        self.cursor.execute("show innodb egine status ;")
+
+class LogSequenceNumber(InnodbStatusLog):
+    dimension = "Log sequence number"
+
+class LogFlushedUpTo(InnodbStatusLog):
+    dimension = "Log flushed up to"
+
+class PagesFlushedUpTo(InnodbStatusLog):
+    dimension = "Pages flushed up to"
+
+class LastCheckpointAt(InnodbStatusLog):
+    dimension = "Last checkpoint at"
+
         

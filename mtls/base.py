@@ -406,8 +406,6 @@ class ShowSlave(ConnectorBase):
         return self._value
 
 
-
-
 class ShowMaster(ConnectorBase):
     """分析show master status 的输出
     """
@@ -445,3 +443,48 @@ class ShowMaster(ConnectorBase):
         if self._value == None:
             self._value = self._get_value()
         return self._value  
+
+
+
+class InnodbStatus(ConnectorBase):
+    """分析show engine innodb status 的输出
+    """
+    def __init__(self,host='127.0.0.1',port=3306,user='mtsuser',password='mts10352',*args,**kw):
+        super().__init__(host,port,user,password)
+        self._value=None
+
+    def _get_value(self):
+        if self._value != None:
+            return self._value
+        else:
+            try:
+                self.cursor.execute("show engine innodb status")    
+                data = self.cursor.fetchone()
+                self._value = data
+                return self._value
+            except Exception as e:
+                error_message=str(e)
+                self.logger.info(error_message)
+                self.close()
+                exit()  
+
+    @property
+    def value(self):
+        if self._value == None:
+            self._value = self._get_value()[2]
+            
+        return self._value
+
+class InnodbStatusLog(InnodbStatus):
+    """返回指定维度的数据
+    """
+    dimension = "Log sequence number"
+
+    @property
+    def value(self):
+        _ = super().value
+        for line in self._value.split('\n'):
+            if self.dimension in line:
+                *_,lsn = line.split(self.dimension)
+                return lsn.strip()
+        return -1
