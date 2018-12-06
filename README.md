@@ -151,6 +151,9 @@ homepage:**http://www.sqlpy.com**
    |`-- CreatedTmpDiskTable`         | 对应created_tmp_disk_table、创建磁盘临时表的次数                    | status |
    |`-- CreatedTmpFiles`             | 对应created_tmp_files、创建临时文件的次数                           | status |
    |`-- CreatedTmpTables`            | 对应created_tmp_tables、创建临时表的次数                            | status |
+   |`-- ComCreateTable`              | 对应com_create_table 记录create table 的次数                      | status |
+   |`-- ComDropTable`                | 对应com_drop_table   记录drop table 的次数                        | status |
+   |`-- ComRenameTable`              | 对应com_rename_table 记录rename table 的次数                      | status |
    |`-- InnodbBufferPoolDumpStatus`  | 对应innodb_buffer_pool_dump_status innodb_xx_dump的进度          | status |
    |`-- InnodbBufferPoolLoadStatus`  | 对应innodb_buffer_pool_load_status innodb_xx_load的进度          | status |
    |`-- InnodbBufferPoolResizeStatus`| 对应innodb_buffer_pool_resize_status              进度           | status |
@@ -197,6 +200,10 @@ homepage:**http://www.sqlpy.com**
    |`-- InnodbRowsInserted`          | 对应innodb_rows_inserted 插入的行数                             | status |
    |`-- InnodbRowsRead`              | 对应innodb_rows_read 读取的行数                                 | status |
    |`-- InnodbRowsUpdated`           | 对应innodb_rows_updated 更新的行数                              | status |
+   |`-- LogSequenceNumber`           | 对应show engine innodb status 中的LogSequenceNumber            | innodb |
+   |`-- LogFlushedUpTo`              | 对应show engine innodb status 中的LogFlushedUpTo               | innodb |
+   |`-- PagesFlushedUpTo`            | 对应show engine innodb status 中的PagesFlushedUpTo             | innodb |
+   |`-- LastCheckpointAt`            | 对应show engine innosb status 中的LastCheckpointAt             | innodb |
    |`-- OpenTableDefinitions`        | 对应open_table_definitions 缓存中的.frm文件数量                  | status |
    |`-- OpenTables`                  | 对应open_tables 当前打开的表的数量                               | status |
    |`-- OpenedTableDefinitions`      | 对应opened_table_definitions 曾经缓存过的.frm文件数量             | status |
