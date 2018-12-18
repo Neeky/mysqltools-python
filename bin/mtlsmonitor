@@ -127,7 +127,33 @@ basic_items={
     'ComCreateTable':statu.ComCreateTable,
     'ComDropTable':statu.ComDropTable,
     'ComRenameTable':statu.ComRenameTable,
-    
+    'ComAlterTable':statu.ComAlterTable,
+    ## Index
+    'ComCreateIndex':statu.ComCreateIndex,
+    'ComDropIndex':statu.ComDropIndex,
+    ## User
+    'ComCreateUser':statu.ComCreateUser,
+    'ComAlterUser':statu.ComAlterUser,
+    'ComDropUser':statu.ComDropUser,
+    ## Function
+    'ComCreateFunction':statu.ComCreateFunction,
+    'ComAlterFunction':statu.ComAlterFunction,
+    'ComDropFunction':statu.ComDropFunction,
+    ## DB
+    'ComCreateDb':statu.ComCreateDb,
+    'ComAlterDb':statu.ComAlterDb,
+    'ComDropDb':statu.ComDropDb,
+    ## Procedure
+    'ComCreateProcedure':statu.ComCreateProcedure,
+    'ComAlterProcedure':statu.ComAlterProcedure,
+    'ComDropProcedure':statu.ComDropProcedure,
+    ## View
+    'ComCreateView':statu.ComCreateView,
+    'ComDropView':statu.ComDropView,
+    ## Role
+    'ComCreateRole':statu.ComCreateRole,
+    'ComDropRole':statu.ComDropRole,
+
     'InnodbBufferPoolDumpStatus':statu.InnodbBufferPoolDumpStatus,
     'InnodbBufferPoolLoadStatus':statu.InnodbBufferPoolLoadStatus,
     'InnodbBufferPoolResizeStatus':statu.InnodbBufferPoolResizeStatus,

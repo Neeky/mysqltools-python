@@ -99,6 +99,66 @@ class ComDropTable(StatuBase):
 class ComRenameTable(StatuBase):
     statu_name="Com_rename_table"
 
+class ComAlterTable(StatuBase):
+    statu_name="Com_alter_table"
+
+class ComCreateIndex(StatuBase):
+    statu_name="Com_create_index"
+
+class ComDropIndex(StatuBase):
+    statu_name="Com_drop_index"
+
+class ComCreateUser(StatuBase):
+    statu_name="Com_create_user"
+
+class ComAlterUser(StatuBase):
+    statu_name="Com_alter_user"
+
+class ComDropUser(StatuBase):
+    statu_name="Com_drop_user"
+
+class ComCreateFunction(StatuBase):
+    statu_name="Com_create_function"
+
+class ComAlterFunction(StatuBase):
+    statu_name="Com_alter_function"
+
+class ComDropFunction(StatuBase):
+    statu_name="Com_drop_function"
+
+class ComCreateDb(StatuBase):
+    statu_name="Com_create_db"
+
+class ComAlterDb(StatuBase):
+    statu_name="Com_alter_db"
+
+class ComDropDb(StatuBase):
+    statu_name="Com_drop_db"
+
+class ComCreateProcedure(StatuBase):
+    statu_name="Com_create_procedure"
+
+class ComDropProcedure(StatuBase):
+    statu_name="Com_drop_procedure"
+
+class ComAlterProcedure(StatuBase):
+    statu_name="Com_alter_procedure"
+
+class ComCreateView(StatuBase):
+    statu_name="Com_create_view"
+
+class ComDropView(StatuBase):
+    statu_name="Com_drop_view"
+
+class ComCreateRole(StatuBase):
+    statu_name="Com_create_role"
+
+class ComDropRole(StatuBase):
+    statu_name="Com_drop_role"
+
+class ComAlterUserDefaultRole(StatuBase):
+    statu_name="Com_alter_user_default_role"
+
 class SelectFullJoin(StatuBase):
     """The number of joins that perform table scans because they do not use indexes. 
     If this value is not 0, you should carefully check the indexes of your tables.
