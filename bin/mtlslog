@@ -28,7 +28,7 @@ def log_slice(args,slow_log_handler):
                 if _starttime in line:
                     _finde=True
                     print(line.decode(_charset),end='')
-    except UnicodeDecodeError as err:
+    except Exception as err:
         if _charset == 'latin1':
             pass
         else:

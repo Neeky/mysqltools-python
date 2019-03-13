@@ -159,6 +159,12 @@ class ComDropRole(StatuBase):
 class ComAlterUserDefaultRole(StatuBase):
     statu_name="Com_alter_user_default_role"
 
+class ComCreateTrigger(StatuBase):
+    statu_name="Com_create_trigger"
+
+class ComDropTrigger(StatuBase):
+    statu_name="Com_drop_trigger"
+
 class SelectFullJoin(StatuBase):
     """The number of joins that perform table scans because they do not use indexes. 
     If this value is not 0, you should carefully check the indexes of your tables.

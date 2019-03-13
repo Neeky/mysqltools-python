@@ -153,7 +153,10 @@ basic_items={
     ## Role
     'ComCreateRole':statu.ComCreateRole,
     'ComDropRole':statu.ComDropRole,
-
+    ## Trigger
+    'ComCreateTrigger':statu.ComCreateTrigger,
+    'ComDropTrigger':statu.ComDropTrigger,
+    
     'InnodbBufferPoolDumpStatus':statu.InnodbBufferPoolDumpStatus,
     'InnodbBufferPoolLoadStatus':statu.InnodbBufferPoolLoadStatus,
     'InnodbBufferPoolResizeStatus':statu.InnodbBufferPoolResizeStatus,
