@@ -1,0 +1,45 @@
+import socket
+import sys
+from datetime import datetime
+import argparse
+
+def block_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
+    """工作在阻塞模式下的 http 服务器
+    """
+    try:
+        print("{0} | prepare start block http server".format(datetime.now()))
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as server:
+            html="""<html>
+                <head>
+                    <title> block http server </title>
+                </head>
+                <body>
+                    <h1>{0}</h1>
+                </body>
+            </html>
+            """.format(msg)
+            length_html = len(html.encode('utf8'))
+            head = 'HTTP/1.0 200 OK\r\nDate: Mon, 1 Jan 2049 01:01:01 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {0}\r\n\r\n'.format(length_html)
+            response = (head + html).encode('utf8')
+            server.bind((ip,port))
+            print("{0} | server binds on 127.0.0.1:8080".format(datetime.now()))
+            server.listen(5)
+            while True:
+                cscok,addr = server.accept()
+                print("{0} | accept a client from {1}".format(datetime.now(),addr))
+                request = cscok.recv(4096)
+                cscok.send(response)
+                cscok.close()
+                print("{0} | response sended.".format(datetime.now()))
+    except KeyboardInterrupt as err:
+        sys.exit()
+
+
+
+if __name__ == "__main__":
+    parse = argparse.ArgumentParser('tmlshttp')
+    parse.add_argument('--ip',default='127.0.0.1',help='listening ip')
+    parse.add_argument('--port',default=8080,type=int,help='listening port')
+    parse.add_argument('--message',default='mtlshttp is working ...',help='display message')
+    args = parse.parse_args()
+    block_http_server(args.ip,args.port,args.message)
