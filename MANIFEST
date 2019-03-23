@@ -2,6 +2,7 @@
 setup.py
 bin/mtlsanalysis
 bin/mtlsbackup
+bin/mtlshttp
 bin/mtlslog
 bin/mtlsmonitor
 mtls/__init__.py

@@ -14,7 +14,7 @@ homepage:**http://www.sqlpy.com**
 - [安装](#安装)
 - [监控](#监控)
 - [MySQL慢查询工具](#MySQL慢查询工具)
-
+- [端口检测工具](#端口检测工具)
 
 ---
 
@@ -290,6 +290,43 @@ homepage:**http://www.sqlpy.com**
 
 ## 备份
    ****
+
+   ---
+
+## 端口检测工具
+   **有时候我们想确认到目标主机的端口的网络是否能连通，以 192.168.1.4 主机上的 8080 端口为例吧，我怎么确认到这个端口是不是通的呢？解决方案就是在这个ip和端口上起一个tcp监听，然后一测就知道了**
+
+   **第一步：192.168.1.4 主机上运行 mtlshttp 命令让它起一个到8080端口的 tcp 监听**
+   ```bash
+   mtlshttp --ip=192.168.1.4 --port=8080
+   2019-03-23 09:52:54.714280 | prepare start block http server
+   2019-03-23 09:52:54.714427 | server binds on 192.168.1.4:8080
+   ```
+   **第二步：检测连通性(我在这里使用浏览器来检测)**
+   <img src="./imgs/mtlshttp.png">
+
+   **其它检测方法也是可行的**
+   ```html
+   curl http://192.168.1.4:8080/
+
+
+   <html>
+                   <head>
+                       <title> block http server </title>
+                   </head>
+                   <body>
+                       <h1>mtlshttp is working ...</h1>
+                   </body>
+               </html>
+   ```
+   ```bash
+   telnet 192.168.1.4 8080
+
+
+   Trying 192.168.1.4...
+   Connected to 192.168.1.4.
+   Escape character is '^]'.
+   ```
 
    ---
 

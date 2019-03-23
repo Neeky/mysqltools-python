@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+#-*- coding: UTF-8 -*-
+
 import socket
 import sys
 from datetime import datetime
@@ -22,7 +25,7 @@ def block_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
             head = 'HTTP/1.0 200 OK\r\nDate: Mon, 1 Jan 2049 01:01:01 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {0}\r\n\r\n'.format(length_html)
             response = (head + html).encode('utf8')
             server.bind((ip,port))
-            print("{0} | server binds on 127.0.0.1:8080".format(datetime.now()))
+            print("{0} | server binds on {1}:{2}".format(datetime.now(),ip,port))
             server.listen(5)
             while True:
                 cscok,addr = server.accept()
