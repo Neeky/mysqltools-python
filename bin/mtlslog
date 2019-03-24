@@ -2,6 +2,7 @@
 #-*- coding: UTF-8 -*-
 
 import re
+import sys
 import argparse
 from collections import Counter
 
@@ -14,12 +15,13 @@ def log_slice(args,slow_log_handler):
     _endtime = args.endtime.encode(_charset)
     #迭代整个文件查找目标区间中的内容
     try:
+        output_file = open(args.output_file,'bw')
         for line in slow_log_handler:
             #如果_find被标记为True，说明当前line正位于目标区间
             if _finde == True:
                 #说明当前line位于目标区间，直接打印当前line，并判断是否已经到了退出的位置
                 # 有可能遇到 latin1 都解码不了的情况
-                print(line.decode(_charset),end='')
+                output_file.write(line)
                 if _endtime in line:
                     break
                 continue
@@ -27,12 +29,12 @@ def log_slice(args,slow_log_handler):
             if _finde == False:
                 if _starttime in line:
                     _finde=True
-                    print(line.decode(_charset),end='')
+                    output_file.write(line)
     except Exception as err:
-        if _charset == 'latin1':
-            pass
-        else:
-            raise err
+        print(err)
+        sys.exit()
+    finally:
+        output_file.close()
 
 
 def hot_table(args,slow_log_handler):
@@ -105,6 +107,7 @@ operations = {
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument('--slow-log-file',help='slow log file absolute path')
+    parser.add_argument('--output-file',default='/tmp/s.log',help='output file')
     parser.add_argument('--starttime',help='slow log start time flag')
     parser.add_argument('--endtime',help='slow log end time flag')
     parser.add_argument('--charset',default='latin1')
