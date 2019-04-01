@@ -49,7 +49,7 @@ def main_loop(poll):
 def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
     """基于异步IO的http服务端
     """
-    print("{0} | 准备启动http服务".format(datetime.now()))
+    print("{0} | prepare start aio http server".format(datetime.now()))
     html="""<html>
         <head>
             <title> aio http server </title>
@@ -78,7 +78,7 @@ def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
 
             for fileno,event in main_loop(poll):
                 if fileno == serversock_fileno:
-                    print("{0} | 接收新的连接请求".format(datetime.now()))
+                    print("{0} | have a new connection arive".format(datetime.now()))
                     clientsock,client_addr = serversock.accept()
                     clientsock.setblocking(False)
                     poll.register(clientsock.fileno(),select.POLLIN)
@@ -86,39 +86,41 @@ def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
                     requests[clientsock.fileno()] = b''
                     responses[clientsock.fileno()] = rspns
                 elif event & select.POLLIN:
-                    print("{0} | 收集客户端发来的信息 ".format(datetime.now()))
+                    print("{0} | got message from client ".format(datetime.now()))
                     data = connections[fileno].recv(4096)
                     if  not data:
-                        print("{0} | 客户端想断开连接".format(datetime.now()))
+                        print("{0} | client want disclose connection".format(datetime.now()))
                         # 返回的数据为 b'' 说明是一个 FIN 信号，这下要断开连接了
                         connections[fileno].close()
                         del connections[fileno]
                         del requests[fileno]
                         del responses[fileno]
                         poll.unregister(fileno)
-                        print("{0} | 客户端连接已经断开".format(datetime.now()))
-                        print("{0} | 服务器当前维持的连接数 {1} ".format(datetime.now(),len(connections)))
+                        print("{0} | connection closed".format(datetime.now()))
+                        print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
                         continue
                     requests[fileno] += data
 
                     if b'\r\n\r\n' in requests[fileno]:
-                        print("{0} | 客户端发送的所有数据都已经被接收".format(datetime.now()))
+                        print("{0} | all message has been readed".format(datetime.now()))
+                        requests[fileno] = b''
                         # http 请求头部接收完成
                         poll.modify(fileno,select.POLLOUT)
                 elif event & select.POLLOUT:
-                    print("{0} | 向客户端发送数据".format(datetime.now()))
+                    print("{0} | seding message to client".format(datetime.now()))
                     send_len = connections[fileno].send(responses[fileno])
                     responses[fileno] = responses[fileno][send_len:]
                     if len(responses[fileno]) == 0:
                         poll.modify(fileno,select.POLLIN)
+                        responses[fileno] = rspns
                 elif event & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
-                    print("{0} | 发生错误准备断开与客户端的连接".format(datetime.now()))
+                    print("{0} | some error happend disclose connection".format(datetime.now()))
                     connections[fileno].close()
                     del connections[fileno]
                     del requests[fileno]
                     del responses[fileno]
                 
-                print("{0} | 服务器当前维持的连接数 {1} ".format(datetime.now(),len(connections)))
+                print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
     except KeyboardInterrupt as err:
         sys.exit()
     finally:
@@ -134,7 +136,7 @@ if __name__ == "__main__":
     parse.add_argument('--ip',default='127.0.0.1',help='listening ip')
     parse.add_argument('--port',default=8080,type=int,help='listening port')
     parse.add_argument('--message',default='mtlshttp is working ...',help='display message')
-    parse.add_argument('--server_type',default='aio',help='http server type',choices=('aio','block'))
+    parse.add_argument('--server-type',default='aio',help='http server type',choices=('aio','block'))
     args = parse.parse_args()
     servers[args.server_type](args.ip,args.port,args.message)
 
