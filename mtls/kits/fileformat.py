@@ -5,7 +5,7 @@
 ......
 """
 
-def fileformat(size,base=1024):
+def fileformat(size,base=1000):
     """把文件大小从字节转化成对人类友好的形式
     >>> print(fileformat(1024))
     1.0 KiB
@@ -15,12 +15,6 @@ def fileformat(size,base=1024):
     0.0 B
     >>> print(fileformat(6))
     6.0 B
-    >>> fileformat(1,100)
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/Users/jianglexing/Desktop/test/fileformat.py", line 20, in fileformat
-        raise ValueError("the base argument must be 1000 or 1024 .")
-    ValueError: the base argument must be 1000 or 1024 .
     """
     if base not in (1000,1024):
         # 为么以 1000 进位，要么以 1024 进位
