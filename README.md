@@ -15,7 +15,7 @@ homepage:**http://www.sqlpy.com**
 - [监控](#监控)
 - [MySQL慢查询工具](#MySQL慢查询工具)
 - [端口检测工具](#端口检测工具)
-
+- [大文件分析](#大文件分析)
 ---
 
 ## 关于
@@ -327,7 +327,34 @@ homepage:**http://www.sqlpy.com**
    Connected to 192.168.1.4.
    Escape character is '^]'.
    ```
+   >特别感谢 工程师 HanGang 对上述接口的测试 https://github.com/Han-Gang
 
+   ---
+
+## 大文件分析
+   **mtlsbigfiles 用于分析给定目录下哪几个文件比较大**
+   ```bash
+   mtlsbigfiles /usr/local/homebrew/var/mysql/ 
+   ******************************************************
+   |FILE PATH                                 | FILE SIZE| 
+   ******************************************************
+   |/usr/local/homebrew/var/mysql/ibdata1     | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/ibtmp1      | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/undo_001    | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/undo_002    | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/mysql.ibd   | 26.2 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile1 | 50.3 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 M
+
+
+   mtlsbigfiles /usr/local/homebrew/var/mysql/  --limit=3
+   ******************************************************
+   |FILE PATH                                 | FILE SIZE| 
+   ******************************************************
+   |/usr/local/homebrew/var/mysql/mysql.ibd   | 26.2 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile1 | 50.3 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 MB 
+   ```
    ---
 
 ## MySQL慢查询工具
