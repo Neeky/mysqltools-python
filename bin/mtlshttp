@@ -81,13 +81,17 @@ def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
                     print("{0} | have a new connection arive".format(datetime.now()))
                     clientsock,client_addr = serversock.accept()
                     clientsock.setblocking(False)
-                    poll.register(clientsock.fileno(),select.POLLIN)
+                    poll.register(clientsock.fileno(),select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                     connections[clientsock.fileno()] = clientsock
                     requests[clientsock.fileno()] = b''
                     responses[clientsock.fileno()] = rspns
                 elif event & select.POLLIN:
                     print("{0} | got message from client ".format(datetime.now()))
-                    data = connections[fileno].recv(4096)
+                    try:
+                        data = connections[fileno].recv(4096)
+                    except ConnectionResetError:
+                        # 处理客户端主动断开的异常
+                        data = b''
                     if  not data:
                         print("{0} | client want disclose connection".format(datetime.now()))
                         # 返回的数据为 b'' 说明是一个 FIN 信号，这下要断开连接了
@@ -105,13 +109,13 @@ def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
                         print("{0} | all message has been readed".format(datetime.now()))
                         requests[fileno] = b''
                         # http 请求头部接收完成
-                        poll.modify(fileno,select.POLLOUT)
+                        poll.modify(fileno,select.POLLOUT | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                 elif event & select.POLLOUT:
                     print("{0} | seding message to client".format(datetime.now()))
                     send_len = connections[fileno].send(responses[fileno])
                     responses[fileno] = responses[fileno][send_len:]
                     if len(responses[fileno]) == 0:
-                        poll.modify(fileno,select.POLLIN)
+                        poll.modify(fileno,select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                         responses[fileno] = rspns
                 elif event & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
                     print("{0} | some error happend disclose connection".format(datetime.now()))
