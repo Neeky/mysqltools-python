@@ -59,17 +59,24 @@ def hot_uid(args,slow_log_handler):
     """
     c = Counter()
     _charset = args.charset
-    for line in slow_log_handler:
-        #先去掉所有的单引号与双引号
-        _line = line.decode(_charset).replace(r"'","").replace(r'"','')
+    for line in slow_log_handler: 
         try:
+            #先去掉所有的单引号与双引号
+            _line = line.decode(_charset).replace(r"'","").replace(r'"','')
             all_fuid = re.findall(r"FUId = \d*",_line)
             if len(all_fuid) > 0:
-                fuid = [target for target in all_fuid if len(target) > 7][0]
-                c.update({fuid:1})
+                #fuid = [target for target in all_fuid if len(target) > 7][0]
+                #c.update({fuid:1})
+                _fuid = [target for target in all_fuid if len(target) > 7]
+                if len(_fuid) >1:
+                    fuid = _fuid[0]
+                    c.update({fuid:1})
+                else:
+                    continue
+                
         except Exception as e:
-            print(e)
-            exit()
+            # 不管理是解码错误还是其它的异常都直接跳过
+            pass
     #格式化输出
     print("{0:<32} {1}".format("FUId".upper(),"counter".upper()))
     print("-"*48)
