@@ -16,6 +16,7 @@ homepage:**http://www.sqlpy.com**
 - [MySQL慢查询工具](#MySQL慢查询工具)
 - [端口检测工具](#端口检测工具)
 - [大文件分析](#大文件分析)
+- [批量删除](#批量删除)
 ---
 
 ## 关于
@@ -447,4 +448,74 @@ homepage:**http://www.sqlpy.com**
    ```
    mtlslog 的定位是mysqldumpslow的一个补充
    
+   ---
+
+## 批量删除
+   **有时候我们会遇到一些大表，比如说单表 500G 这种场景下不管是 DDL 还是 DML 效率都不高。如果表里面有些数据已经过时了，删除这些无效的数据，通常来讲是一个不错的选择。**
+
+   **在删除无效数据的时候有些要注意的地方，不能一下子全部删除完，这样就会造成瞬间有大量磁盘IO，进而影响业务；针对这类的场景通常是每一次删除非常少的行，如 1000 行然后执行 n 次删除操作。**
+
+   **针对上面的场景我们提供了 `mtlsdeleterows` 它会从 --sql-file 指定的文件中读取要执行的 sql 语句，然后在 sql 语句的后面加上 limit ; 每条 sql 语句都会在一个循环中执行，循环的退出条件是 sql 删除了 0 行；然后再进入执行下一条语句的循环。**
+
+   **1、** 假设 tempdb.t 就是我们要执行删除操作的大表
+   ```sql
+   select count(*) from tempdb.t;                                                             
+   +----------+
+   | count(*) |
+   +----------+
+   |  1048576 |
+   +----------+
+   1 row in set (0.12 sec)
+   ```
+   **2、** 要执行的删除语句是
+   ```bash
+   cat /tmp/dlt.sql 
+   delete from tempdb.t where id <= 12000;
+   ````
+   **3、** 通过 mtlsdeleterows 完分批执行的操作
+   ```bash
+   # view 参数用来查看 mtlsdeleterows 会对 sql 语句进行怎样的处理
+   mtlsdeleterows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 \
+   --rows=100 --sql-file=/tmp/dlt.sql view
+
+   2019-07-26 20:37:27,176 INFO formatted sql statement : delete from tempdb.t where id <= 12000 limit 100;
+
+   # exec 参数才会真正的执行删除操作
+   mtlsdeleterows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 --rows=100 --sql-file=/tmp/dlt.sql exec
+
+   2019-07-26 20:53:35,413 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:36,422 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:37,430 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:38,440 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   ...
+   ...
+   2019-07-26 20:53:53,561 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:54,569 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:55,576 INFO 1 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:56,578 INFO compelete
+   ```
+   **4、** 更多选项可以查看帮助
+   ```bash
+   mtlsdeleterows --help                                                     
+   usage: mtlsdeleterows [-h] [--host HOST] [--port PORT] [--user USER]                              
+                         [--password PASSWORD] [--sleep-time SLEEP_TIME]
+                         [--rows ROWS] [--sql-file SQL_FILE]
+                         [--encoding ENCODING]
+                         {view,exec}
+   
+   positional arguments:
+     {view,exec}
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --host HOST           mysql host
+     --port PORT           mysql port
+     --user USER           mysql user
+     --password PASSWORD   mysql user's password
+     --sleep-time SLEEP_TIME
+                           sleep time per batch
+     --rows ROWS           rows per batch
+     --sql-file SQL_FILE   file containt sql statement
+     --encoding ENCODING   sql file encoding default utf8
+   ```
    ---

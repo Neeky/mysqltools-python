@@ -3,6 +3,7 @@ setup.py
 bin/mtlsanalysis
 bin/mtlsbackup
 bin/mtlsbigfiles
+bin/mtlsdeleterows
 bin/mtlshttp
 bin/mtlslog
 bin/mtlsmonitor
