@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+#-*- coding: UTF-8 -*-
+
+import os
+import sys
+import stat
+import argparse
+import collections
+from mtls.kits import fileformat
+
+
+class FileStat(object):
+    __slots__ = ('file_path','file_size')
+
+    def __init__(self,file_path,file_szie):
+        self.file_path = file_path
+        self.file_size = file_szie
+    
+    def __eq__(self,other):
+        return self.file_size == other.file_size
+    
+    def __le__(self,other):
+        return self.file_size <= other.file_size
+
+    def __lt__(self,other):
+        return self.file_size < other.file_size
+
+    def __str__(self):
+        return f"{self.file_path}    {fileformat(self.file_size)}"
+
+
+class BigFiles(object):
+    def __init__(self,topdir,limit):
+        self._files = []
+        self.limit = limit
+        self.walktree(topdir)
+    
+    def append(self,filestat):
+        self._files.append(filestat)
+        self._files = sorted(self._files)
+        if len(self._files) > self.limit:
+            self._files = self._files[1:]
+
+    def walktree(self,topdir):
+        for file_name in os.listdir(topdir):
+            try:
+                file_path = os.path.join(topdir,file_name)
+                st = os.stat(file_path)
+                if stat.S_ISDIR(st.st_mode):
+                    self.walktree(file_path)
+                else:
+                    self.append(FileStat(file_path,st.st_size))
+            except FileNotFoundError as err:
+                pass
+    
+    
+    def __str__(self):
+        max_file_path_length = max( [len(f.file_path) for f in self._files] )
+        max_size_length = max( [len(fileformat(f.file_size)) for f in self._files] )
+        head = f"*" * (max_file_path_length + max_size_length + 6) + '\n'
+        content_format = "|{{0:<{0}}} | {{1:>{1}}} \n".format(max_file_path_length,max_size_length)
+        content = content_format.format("FILE PATH","FILE SIZE|") + head
+        for f in self._files:
+            content = content + content_format.format(f.file_path,fileformat(f.file_size))
+        s = head + content
+        return s
+        
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("mtlsbigfiles")
+    parser.add_argument('topdir',default='/usr/local/',help='absolute path')
+    parser.add_argument('--limit',default=7,type=int,help='limits how much rows should be printed')
+    args = parser.parse_args()
+    bf = BigFiles(args.topdir,args.limit)
+    print(bf)
+
+
+
+
+

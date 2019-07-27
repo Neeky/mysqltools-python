@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+#-*- coding: UTF-8 -*-
+
+import socket
+import sys
+import select
+from datetime import datetime
+import argparse
+
+def block_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
+    """工作在阻塞模式下的 http 服务器
+    """
+    try:
+        print("{0} | prepare start block http server".format(datetime.now()))
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as server:
+            html="""<html>
+                <head>
+                    <title> block http server </title>
+                </head>
+                <body>
+                    <h1>{0}</h1>
+                </body>
+            </html>
+            """.format(msg)
+            length_html = len(html.encode('utf8'))
+            head = 'HTTP/1.0 200 OK\r\nDate: Mon, 1 Jan 2049 01:01:01 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {0}\r\n\r\n'.format(length_html)
+            response = (head + html).encode('utf8')
+            server.bind((ip,port))
+            print("{0} | server binds on {1}:{2}".format(datetime.now(),ip,port))
+            server.listen(5)
+            while True:
+                cscok,addr = server.accept()
+                print("{0} | accept a client from {1}".format(datetime.now(),addr))
+                request = cscok.recv(4096)
+                cscok.send(response)
+                cscok.close()
+                print("{0} | response sended.".format(datetime.now()))
+    except KeyboardInterrupt as err:
+        sys.exit()
+
+def main_loop(poll):
+    """定义主事件循环
+    """
+    while True:
+        events = poll.poll()
+        for fileno,event in events:
+            yield fileno,event
+
+def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
+    """基于异步IO的http服务端
+    """
+    print("{0} | prepare start aio http server".format(datetime.now()))
+    html="""<html>
+        <head>
+            <title> aio http server </title>
+        </head>
+        <body>
+            <h1>{0}</h1>
+        </body>
+    </html>
+    """.format(msg)
+    length_html = len(html.encode('utf8'))
+    head = 'HTTP/1.0 200 OK\r\nDate: Mon, 1 Jan 2049 01:01:01 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {0}\r\n\r\n'.format(length_html)
+    rspns = (head + html).encode('utf8')
+    try:
+        poll = select.poll()
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as serversock:
+            serversock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            serversock.bind((ip,port))
+            serversock.listen(8)
+
+            poll.register(serversock.fileno(),select.POLLIN)
+
+            serversock_fileno = serversock.fileno()
+            connections = {}
+            requests = {}
+            responses = {}
+
+            for fileno,event in main_loop(poll):
+                if fileno == serversock_fileno:
+                    print("{0} | have a new connection arive".format(datetime.now()))
+                    clientsock,client_addr = serversock.accept()
+                    clientsock.setblocking(False)
+                    poll.register(clientsock.fileno(),select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
+                    connections[clientsock.fileno()] = clientsock
+                    requests[clientsock.fileno()] = b''
+                    responses[clientsock.fileno()] = rspns
+                elif event & select.POLLIN:
+                    print("{0} | got message from client ".format(datetime.now()))
+                    try:
+                        data = connections[fileno].recv(4096)
+                    except ConnectionResetError:
+                        # 处理客户端主动断开的异常
+                        data = b''
+                    if  not data:
+                        print("{0} | client want disclose connection".format(datetime.now()))
+                        # 返回的数据为 b'' 说明是一个 FIN 信号，这下要断开连接了
+                        connections[fileno].close()
+                        del connections[fileno]
+                        del requests[fileno]
+                        del responses[fileno]
+                        poll.unregister(fileno)
+                        print("{0} | connection closed".format(datetime.now()))
+                        print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
+                        continue
+                    requests[fileno] += data
+
+                    if b'\r\n\r\n' in requests[fileno]:
+                        print("{0} | all message has been readed".format(datetime.now()))
+                        requests[fileno] = b''
+                        # http 请求头部接收完成
+                        poll.modify(fileno,select.POLLOUT | select.POLLERR | select.POLLHUP | select.POLLNVAL)
+                elif event & select.POLLOUT:
+                    print("{0} | seding message to client".format(datetime.now()))
+                    send_len = connections[fileno].send(responses[fileno])
+                    responses[fileno] = responses[fileno][send_len:]
+                    if len(responses[fileno]) == 0:
+                        poll.modify(fileno,select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
+                        responses[fileno] = rspns
+                elif event & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
+                    print("{0} | some error happend disclose connection".format(datetime.now()))
+                    connections[fileno].close()
+                    del connections[fileno]
+                    del requests[fileno]
+                    del responses[fileno]
+                
+                print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
+    except KeyboardInterrupt as err:
+        sys.exit()
+    finally:
+        poll.unregister(serversock_fileno)
+
+servers = {
+    'block':block_http_server,
+    'aio':aio_http_server
+}
+
+if __name__ == "__main__":
+    parse = argparse.ArgumentParser('tmlshttp')
+    parse.add_argument('--ip',default='127.0.0.1',help='listening ip')
+    parse.add_argument('--port',default=8080,type=int,help='listening port')
+    parse.add_argument('--message',default='mtlshttp is working ...',help='display message')
+    parse.add_argument('--server-type',default='aio',help='http server type',choices=('aio','block'))
+    args = parse.parse_args()
+    servers[args.server_type](args.ip,args.port,args.message)
+
