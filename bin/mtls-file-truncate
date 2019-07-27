@@ -40,9 +40,9 @@ def truncate_file(args:argparse.ArgumentParser):
         while True:
             target_size = size - chunk if size > chunk else 0
             os.truncate(args.file,target_size)
+            logging.info(f"truncate file to {target_size} byte(s)")
             if target_size == 0:
                 break
-            logging.info(f"truncate file to {target_size} byte(s)")
             time.sleep(args.sleep_time)
             size = os.stat(args.file).st_size
     except Exception as err:

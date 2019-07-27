@@ -61,7 +61,7 @@ homepage:**http://www.sqlpy.com**
    You should consider upgrading via the 'pip install --upgrade pip' command.
    ```
 
-   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtlsmontir,mtlsbackup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
+   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtls-montir,mtls-backup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
    ```
    mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
    ```
@@ -377,9 +377,9 @@ homepage:**http://www.sqlpy.com**
    ---
 
 ## 慢查询日志切片分析
-   **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtlslog这个命令行工具** 
+   **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtls-log这个命令行工具** 
 
-   **1): 查看mtlslog命令行帮助信息**
+   **1): 查看mtls-log命令行帮助信息**
    ```bash
    mtls-log --help
    usage: mtls-log [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
@@ -399,7 +399,7 @@ homepage:**http://www.sqlpy.com**
      --charset CHARSET
      --top TOP
    ```
-   **mtlslog 有三个主要的功能 a): log_slice 它可以从慢查询日志中切出“特定时间段”内的那部分日志 b): hot_table 它可以系统慢查询中最频繁出现的表 c): 统计出最容易引起慢查询的客户端主机的ip**
+   **mtls-log 有三个主要的功能 a): log_slice 它可以从慢查询日志中切出“特定时间段”内的那部分日志 b): hot_table 它可以系统慢查询中最频繁出现的表 c): 统计出最容易引起慢查询的客户端主机的ip**
 
    ---
 
