@@ -1,0 +1,147 @@
+#!/usr/bin/evn python3
+"""
+创建指定结构的表、并向其插件数据、主要用于分析数据库实例的写性能
+"""
+import os
+import sys
+import time
+import mysql
+import string
+import logging
+import argparse
+import threading
+from mysql import connector
+from mysql.connector import errorcode
+from collections import namedtuple
+
+
+if '.' in __file__:
+    name,_ = __file__.split('.')
+else:
+    name = __file__
+
+def check_python_version() -> None:
+    """
+    检测当前的 python 版本是否被支持，只支持 python-3.0.x 以上的环境
+    """
+    if sys.version_info.major <= 2:
+        print("only support python-3.x",file=sys.stderr)
+        sys.exit(1)
+
+def parse_cmd_arags() -> argparse.ArgumentParser:
+    """
+    处理命令行参数
+    """
+    def to_bool(value):
+        return value.upper() in ['YES','TRUE','1','ON']
+    
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('--host',type=str,default="127.0.0.1",help="mysql host")
+    parser.add_argument('--port',type=int,default=3306,help="mysql port")
+    parser.add_argument('--user',type=str,default='appuser',help="mysql user")
+    parser.add_argument('--password',type=str,default='apps_352',help="mysql user's passowrd ")
+    parser.add_argument('--database',type=str,default="tempdb",help="work schema(database)")
+    parser.add_argument('--table',type=str,default="t",help="work table")
+    parser.add_argument('--thread',type=int,default=1,help='parralel threads')
+    parser.add_argument('--rows',type=int,default=100,help="rows")
+    parser.add_argument('--log-level',type=str,choices=['info','debug','error'],default="info")
+    parser.add_argument('--auto-primary-key',type=to_bool,default=True,choices=[False,True],help="whether table has primary key")
+    parser.add_argument('--ints',type=int,default=0,help="int column counts")
+    parser.add_argument('--floats',type=int,default=0,help="float column counts")
+    parser.add_argument('--doubles',type=int,default=0,help='double column counts')
+    parser.add_argument('--varchars',type=int,default=0,help="varchar column counts")
+    parser.add_argument('--varchar-length',type=int,default=128,help="varchar column length default 128")
+    parser.add_argument('--decimals',type=int,default=0,help="decimal column counts")
+    parser.add_argument('--decimal-precision',type=int,default=12,help="total digits length")
+    parser.add_argument('--decimal-scale',type=int,default=2,help="the scale of decimal(the number of digits to the right of the decimal point)")
+    parser.add_argument('action',type=str,choices=['create','drop','insert'])
+    arags = parser.parse_args()
+    return arags
+
+def config_logger(args:argparse.ArgumentParser) -> None:
+    """
+    配置日志的输出格式
+    """
+    logger = logging.getLogger(name)
+    if args.log_level == "debug":
+        logger.setLevel(logging.DEBUG)
+    elif args.log_level == "info":
+        logger.setLevel(logging.INFO)
+    elif args.log_level == "error":
+        logger.setLevel(logging.ERROR)
+    
+    handler = logging.StreamHandler(sys.stderr)
+    formater = logging.Formatter("%(asctime)s  %(name)s  %(process)d  %(threadName)s  %(levelname)s  %(message)s")
+    handler.setFormatter(formater)
+    logger.addHandler(handler)
+
+def create(args:argparse.ArgumentParser):
+    """
+    根据 args 指定的参数来创建表
+    """
+    logger = logging.getLogger(name)
+    columns = []
+    # 检查是否自动加 primary key .
+    if args.auto_primary_key == True:
+        columns.append("id int not null auto_increment primary key")
+    # 检查 int 字段的数量
+    if args.ints >= 1:
+        for i in range(args.ints):
+            columns.append(f"i{i} int not null")
+    # 检查 varchar 字段的数量
+    if args.varchars >= 1:
+        for c in range(args.varchars):
+            columns.append(f"c{c} varchar({args.varchar_length}) not null")
+    # 检查 float 字段的数量
+    if args.floats >= 1:
+        for f in range(args.floats):
+            columns.append(f"f{f} float not null")
+    # 检查 double 字段的数量
+    if args.doubles >= 1:
+        for d in range(args.doubles):
+            columns.append(f"d{d} double not null")
+    # 检查 decimal 字段的数量
+    if args.decimals >= 1:
+        if args.decimal_precision < args.decimal_scale:
+            logger.error("decimal-precision argument must big then decimal-scale")
+            sys.exit(2)
+        if args.decimal_precision <=0:
+            logger.error("decimal-precision argument must big then 0")
+            sys.exit(3)
+        for d in range(args.decimals):
+            columns.append(f"dm{d} decimal({args.decimal_precision},{args.decimal_scale})")
+    
+    # 拼接 SQL 
+    sql = f"create table {args.database}.{args.table} ( {','.join(columns)});"
+
+    cnx = None
+    try:
+        cnx = connector.connect(host=args.host,port=args.port,user=args.user,password=args.password,database=args.database)
+        cursor = cnx.cursor()
+    except connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            logger.error(f"host={args.host} port={args.port} user={args.user},passwrod={args.password}")
+    finally:
+        if cnx != None and hasattr(cnx,'close'):
+            cnx.close()
+
+    logger.info(sql)
+    
+
+
+
+
+def main():
+    check_python_version()
+    args = parse_cmd_arags()
+    config_logger(args)
+    if args.action == 'create':
+        create(args)
+
+        
+
+if __name__ == "__main__":
+    main()
+    logger = logging.getLogger(name)
+    logger.info("hello world.")
+
