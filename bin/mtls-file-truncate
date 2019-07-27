@@ -28,7 +28,7 @@ def truncate_file(args:argparse.ArgumentParser):
     """
     if not os.path.isfile(args.file):
         # file not exists
-        logging.error(f"file {args.file} not exists or permission denie .")
+        logging.error(f"file {args.file} not exists or permission denied .")
     
     # 取得文件的字节大小
     size = os.stat(args.file).st_size
