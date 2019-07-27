@@ -12,15 +12,31 @@ homepage:**http://www.sqlpy.com**
 
 - [关于](#关于)
 - [安装](#安装)
-- [监控](#监控)
-- [MySQL慢查询工具](#MySQL慢查询工具)
-- [端口检测工具](#端口检测工具)
-- [大文件分析](#大文件分析)
-- [批量删除](#批量删除)
+- [数据库监控项采集 -- mtls-monitor](#数据库监控项采集)
+- [数据库备份 -- mtls-backup](#数据库备份)
+- [慢查询日志切片分析 -- mtls-log ](#慢查询日志切片分析)
+- [tcp端口连通性测试 -- mtls-http](#tcp端口连通性测试)
+- [查询给定目录中的大文件 -- mtls-big-files](#查询给定目录中的大文件)
+- [温和删除表中的行 -- mtls-delete-rows](#温和删除表中的行)
+- [温和文件截断 -- mtls-file-truncate](#温和文件截断)
 ---
 
 ## 关于
-   **1): 什么是mysqtools-python** mysqltools-python是一个Python工具包，它的主要功能是可以完成对MySQL的“监控”，“备份”，“巡检(开发中)”，“自动故障分析与解决(开发中)”
+   **1、** mysqltools-python 是一个 专为 dba 服务的 python 工具包，主要的目的在于把一些锁定程序化，一方面可以提高劳动生产率，另一方面可以节约 dba 的时间。
+
+   ---
+
+   **2、** 目前工具包中集成的工具列表
+   |**工具名**|**功能说明**|
+   |---------|-----------|
+   |mtls-monitor| 监控项采集 |
+   |mtls-backup|  自动化备份数据库 |
+   |mtls-delete-rows| 分批(温和)删除大表中的行|
+   |mtls-file-truncate| 分批(温和)的截断物理文件|
+   |mtls-big-files| 查询出给定目录下的大文件名|
+   |mtls-http| tcp(http)端口连通性测试|
+   |mtls-log | 慢查询日志切片|
+   |mtls-perfbench| 数据库跑分工具(开发中)|
 
    ---
 
@@ -46,7 +62,7 @@ homepage:**http://www.sqlpy.com**
 
    安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtlsmontir,mtlsbackup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
    ```
-   mtlsmonitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
+   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
    ```
    ```
    44
@@ -54,7 +70,7 @@ homepage:**http://www.sqlpy.com**
 
    ---
 
-## 监控
+## 数据库监控项采集
    **1): mysqltools-python已经实现的监控项列表**
 
    *监控项名*                         |               *简介*                |               *采集方式*        
@@ -240,11 +256,11 @@ homepage:**http://www.sqlpy.com**
 
    **2): 监控工具mtlsmonitor的使用方式**
    ```
-   mtlsmonitor --host=<主机IP> --port=<端口> --user=<MySQL用户名> --password=<MySQL用户密码> <监控项名>
+   mtls-monitor --host=<主机IP> --port=<端口> --user=<MySQL用户名> --password=<MySQL用户密码> <监控项名>
    ``` 
    比如说我想查看innodb层面的行锁等待次数(InnodbRowLockWaits) 那我就可以这样做
    ```
-   mtlsmonitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 InnodbRowLockWaits
+   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 InnodbRowLockWaits
    ```
    ```
    0
@@ -289,17 +305,18 @@ homepage:**http://www.sqlpy.com**
 
    ---  
 
-## 备份
+## 数据库备份
    ****
+   见 <a href="https://github.com/Neeky/mysqltools"> mysqltools 中备份相关章节</a>
 
    ---
 
-## 端口检测工具
+## tcp端口连通性测试
    **有时候我们想确认到目标主机的端口的网络是否能连通，以 192.168.1.4 主机上的 8080 端口为例吧，我怎么确认到这个端口是不是通的呢？解决方案就是在这个ip和端口上起一个tcp监听，然后一测就知道了**
 
    **第一步：192.168.1.4 主机上运行 mtlshttp 命令让它起一个到8080端口的 tcp 监听**
    ```bash
-   mtlshttp --ip=192.168.1.4 --port=8080
+   mtls-http --ip=192.168.1.4 --port=8080
    2019-03-23 09:52:54.714280 | prepare start block http server
    2019-03-23 09:52:54.714427 | server binds on 192.168.1.4:8080
    ```
@@ -332,10 +349,10 @@ homepage:**http://www.sqlpy.com**
 
    ---
 
-## 大文件分析
+## 查询给定目录中的大文件
    **mtlsbigfiles 用于分析给定目录下哪几个文件比较大**
    ```bash
-   mtlsbigfiles /usr/local/homebrew/var/mysql/ 
+   mtls-big-files /usr/local/homebrew/var/mysql/ 
    ******************************************************
    |FILE PATH                                 | FILE SIZE| 
    ******************************************************
@@ -348,7 +365,7 @@ homepage:**http://www.sqlpy.com**
    |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 M
 
 
-   mtlsbigfiles /usr/local/homebrew/var/mysql/  --limit=3
+   mtls-big-files /usr/local/homebrew/var/mysql/  --limit=3
    ******************************************************
    |FILE PATH                                 | FILE SIZE| 
    ******************************************************
@@ -358,13 +375,13 @@ homepage:**http://www.sqlpy.com**
    ```
    ---
 
-## MySQL慢查询工具
+## 慢查询日志切片分析
    **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtlslog这个命令行工具** 
 
    **1): 查看mtlslog命令行帮助信息**
    ```bash
-   mtlslog --help
-   usage: mtlslog [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
+   mtls-log --help
+   usage: mtls-log [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
                   [--endtime ENDTIME] [--charset CHARSET] [--top TOP]
                   {log_slice,hot_table,hot_uid,hot_client}
    
@@ -403,9 +420,9 @@ homepage:**http://www.sqlpy.com**
 
    ```
    
-   b): 通过mtlslog切出“# Time: 181022  0:03:43” 到 “# Time: 181022  0:15:53” 这个时段内的查询查询,并把日志保存到/tmp/s.log文件中
+   b): 通过mtls-log切出“# Time: 181022  0:03:43” 到 “# Time: 181022  0:15:53” 这个时段内的查询查询,并把日志保存到/tmp/s.log文件中
    ```bash
-   mtlslog --slow-log-file=slow_query.log \
+   mtls-log --slow-log-file=slow_query.log \
     --starttime='# Time: 181022  0:03:43' --endtime='# Time: 181022  0:15:53' \
     log_slice > /tmp/s.log
    ```
@@ -425,7 +442,7 @@ homepage:**http://www.sqlpy.com**
 
    **3): hot_table 统计慢查询中出现次数最多表名(默认top=7)**
    ```bash
-   mtlslog --slow-log-file=/tmp/s.log hot_table
+   mtls-log --slow-log-file=/tmp/s.log hot_table
    TABLE_NAME                       COUNTER
    ------------------------------------------------
     tempdb.sbtest01         101
@@ -439,7 +456,7 @@ homepage:**http://www.sqlpy.com**
 
    **4): hot_client 统计慢查询中出现的客户端的IP地址(默认top=7)**
    ```bash
-   mtlslog --slow-log-file=/tmp/s.log hot_client
+   mtls-log --slow-log-file=/tmp/s.log hot_client
    CLIENT_HOST_IP                   COUNTER
    ------------------------------------------------
    192.168.136.214                   270
@@ -450,12 +467,12 @@ homepage:**http://www.sqlpy.com**
    
    ---
 
-## 批量删除
+## 温和删除表中的行
    **有时候我们会遇到一些大表，比如说单表 500G 这种场景下不管是 DDL 还是 DML 效率都不高。如果表里面有些数据已经过时了，删除这些无效的数据，通常来讲是一个不错的选择。**
 
    **在删除无效数据的时候有些要注意的地方，不能一下子全部删除完，这样就会造成瞬间有大量磁盘IO，进而影响业务；针对这类的场景通常是每一次删除非常少的行，如 1000 行然后执行 n 次删除操作。**
 
-   **针对上面的场景我们提供了 `mtlsdeleterows` 它会从 --sql-file 指定的文件中读取要执行的 sql 语句，然后在 sql 语句的后面加上 limit ; 每条 sql 语句都会在一个循环中执行，循环的退出条件是 sql 删除了 0 行；然后再进入执行下一条语句的循环。**
+   **针对上面的场景我们提供了 `mtls-delete-rows` 它会从 --sql-file 指定的文件中读取要执行的 sql 语句，然后在 sql 语句的后面加上 limit ; 每条 sql 语句都会在一个循环中执行，循环的退出条件是 sql 删除了 0 行；然后再进入执行下一条语句的循环。**
 
    **1、** 假设 tempdb.t 就是我们要执行删除操作的大表
    ```sql
@@ -472,10 +489,10 @@ homepage:**http://www.sqlpy.com**
    cat /tmp/dlt.sql 
    delete from tempdb.t where id <= 12000;
    ````
-   **3、** 通过 mtlsdeleterows 完分批执行的操作
+   **3、** 通过 mtls-delete-rows 完分批执行的操作
    ```bash
    # view 参数用来查看 mtlsdeleterows 会对 sql 语句进行怎样的处理
-   mtlsdeleterows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 \
+   mtls-delete-rows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 \
    --rows=100 --sql-file=/tmp/dlt.sql view
 
    2019-07-26 20:37:27,176 INFO formatted sql statement : delete from tempdb.t where id <= 12000 limit 100;
@@ -496,8 +513,8 @@ homepage:**http://www.sqlpy.com**
    ```
    **4、** 更多选项可以查看帮助
    ```bash
-   mtlsdeleterows --help                                                     
-   usage: mtlsdeleterows [-h] [--host HOST] [--port PORT] [--user USER]                              
+   mtls-delete-rows --help                                                     
+   usage: mtls-delete-rows [-h] [--host HOST] [--port PORT] [--user USER]                              
                          [--password PASSWORD] [--sleep-time SLEEP_TIME]
                          [--rows ROWS] [--sql-file SQL_FILE]
                          [--encoding ENCODING]
@@ -517,5 +534,57 @@ homepage:**http://www.sqlpy.com**
      --rows ROWS           rows per batch
      --sql-file SQL_FILE   file containt sql statement
      --encoding ENCODING   sql file encoding default utf8
+   ```
+   ---
+
+## 温和文件截断
+   **1、** 有时候我们会遇到下面的场景，一个文件已经非常大了，如果直接 rm 删除的话，这个东西可能会占用大量的IO带宽。于是我们就需要一个慢慢减小文件大小的工具，mtls-file-truncate 就是这个场景的一个解决方案。
+
+   
+   **2、** 假设我们要删除 /tmp/V982112-01.zip 这个文件
+   ```bash
+   ll /tmp/
+
+   -rw-r--r--@ 1 jianglexing  staff  437235344  5  3 11:31 V982112-01.zip
+   ```
+   **3、** 用 mtls-file-truncate 来完成一秒删除(截断)一点点
+   ```bash
+   mtls-file-truncate --chunk=32 /tmp/V982112-01.zip
+
+   2019-07-27 12:46:40,618 INFO file /tmp/V982112-01.zip size 437235344(byte)    chunck size 33554432(byte)
+   2019-07-27 12:46:40,619 INFO truncate file to 403680912 byte(s)
+   2019-07-27 12:46:41,625 INFO truncate file to 370126480 byte(s)
+   2019-07-27 12:46:42,631 INFO truncate file to 336572048 byte(s)
+   2019-07-27 12:46:43,636 INFO truncate file to 303017616 byte(s)
+   2019-07-27 12:46:44,641 INFO truncate file to 269463184 byte(s)
+   2019-07-27 12:46:45,645 INFO truncate file to 235908752 byte(s)
+   2019-07-27 12:46:46,651 INFO truncate file to 202354320 byte(s)
+   2019-07-27 12:46:47,656 INFO truncate file to 168799888 byte(s)
+   2019-07-27 12:46:48,659 INFO truncate file to 135245456 byte(s)
+   2019-07-27 12:46:49,663 INFO truncate file to 101691024 byte(s)
+   2019-07-27 12:46:50,668 INFO truncate file to 68136592 byte(s)
+   2019-07-27 12:46:51,673 INFO truncate file to 34582160 byte(s)
+   2019-07-27 12:46:52,679 INFO truncate file to 1027728 byte(s)
+   2019-07-27 12:46:53,682 INFO compelete
+   ```
+   查看完成后的效果
+   ```bash
+   ll /tmp/
+   
+   -rw-r--r--@ 1 jianglexing  staff   0  7 27 12:46 V982112-01.zip
+   ```
+   **4、** 更多的使用技巧可以查看帮助信息
+   ```bash
+   mtls-file-truncate --help
+   usage: mtls-file-truncate [-h] [--chunk CHUNK] [--sleep-time SLEEP_TIME] file
+   
+   positional arguments:
+     file                  file path
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --chunk CHUNK         chunk size default 4 (MB)
+     --sleep-time SLEEP_TIME
+                           sleep time per truncate
    ```
    ---
