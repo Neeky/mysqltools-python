@@ -6,19 +6,17 @@ import os
 import sys
 import time
 import mysql
+import random
 import string
 import logging
 import argparse
 import threading
 from mysql import connector
-from mysql.connector import errorcode
 from collections import namedtuple
+from mysql.connector import errorcode
 
 
-if '.' in __file__:
-    name,_ = __file__.split('.')
-else:
-    name = __file__
+name = os.path.basename(__file__)
 
 def check_python_version() -> None:
     """
@@ -110,14 +108,23 @@ def create(args:argparse.ArgumentParser):
             sys.exit(3)
         for d in range(args.decimals):
             columns.append(f"dm{d} decimal({args.decimal_precision},{args.decimal_scale})")
+
+    # 如果没有指定任何类型的列，那么直接退出
+    if len(columns) == 1 and args.auto_primary_key==True:
+        logger.error(f"do not have any columns in table {args.database}.{args.table}")
+        sys.exit(1)
     
     # 拼接 SQL 
     sql = f"create table {args.database}.{args.table} ( {','.join(columns)});"
 
+    # 执行 SQL 语句创建表
+    logger.info(f"create table sql statement: {sql}")
     cnx = None
     try:
         cnx = connector.connect(host=args.host,port=args.port,user=args.user,password=args.password,database=args.database)
         cursor = cnx.cursor()
+        cursor.execute(sql)
+        cnx.commit()
     except connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             logger.error(f"host={args.host} port={args.port} user={args.user},passwrod={args.password}")
@@ -125,23 +132,172 @@ def create(args:argparse.ArgumentParser):
         if cnx != None and hasattr(cnx,'close'):
             cnx.close()
 
-    logger.info(sql)
+    logger.info(f"complete")
     
 
+def get_int_value():
+    """
+    整数生成器
+    """
+    while True:
+        yield random.randint(1,200000000)
+get_int_value = get_int_value()
 
 
+def get_str_value(length=64):
+    """
+    随机字符串生成器
+    """
+    s = string.ascii_letters + string.digits 
+    ss = [ i for i in s + s]
+    if len(ss) <= length:
+        raise RuntimeError(f"varchar length must less then {length}")
+    while True:
+        random.shuffle(ss)
+        yield ''.join(ss[:length])
+get_str_value = get_str_value()
+
+
+def get_float_value():
+    """
+    浮点数生成器
+    """
+    while True:
+        yield '{0:.2f}'.format(random.random() * 10000000000)
+get_float_value = get_float_value()
+
+
+# 类型与生成器的对应关系
+value_generates = {
+    'ints': get_float_value,
+    'varchar': get_str_value,
+    'float': get_float_value,
+    'double': get_float_value,
+    'decimal': get_float_value,
+}
+
+def insert_sql(args:argparse.ArgumentParser) -> tuple:
+    """
+    """
+    logger = logging.getLogger(name)
+    sql = None 
+    columns = []
+    if args.ints >=1:
+        for i in range(args.ints):
+            columns.append( (f'i{i}',get_int_value) )
+
+    if args.varchars >=1:
+        for v in range(args.varchars):
+            columns.append( (f"c{v}",get_str_value) )
+    
+    if args.floats >= 1:
+        for f in range(args.floats):
+            columns.append( (f"f{f}",get_float_value) )
+    
+    if args.doubles >= 1:
+        for d in range(args.doubles):
+            columns.append( (f"d{d}",get_float_value) )
+
+    if args.decimals >= 1:
+        for dm in range(args.decimals):
+            columns.append( (f"dm{dm}",get_float_value) )
+
+    if len(columns) == 0:
+        logger.error(f"columns counts equal 0")
+        sys.exit(2)
+
+    # 拼接出 SQL 模板
+    names = [n for n,v in columns]
+    s = ['%s' for n in names]
+    sql = f"insert into {args.database}.{args.table} ({','.join(names)}) values({','.join(s)})"
+
+    # 计算出动态的 SQL 参数
+    sql_args = [v for n,v in columns]
+    
+
+    return (sql,sql_args)
+
+def insert(args,rows):
+    """
+    执行 insert 操作
+    """
+    logger = logging.getLogger(name)
+    sql,value_generates = insert_sql(args)
+    cnx = None
+    logger.info(f"sql statement: {sql}")
+    #print(sql)
+    try:
+        cnx = connector.connect(host=args.host,port=args.port,user=args.user,password=args.password,database=args.database)
+        cursor = cnx.cursor()
+        for r in range(rows):
+            values = [next(v) for v in value_generates]
+            #logger.debug(values)
+            cursor.execute(sql,values)
+            cnx.commit()
+            #logger.debug(f"{sql},{values}")
+    except connector.Error as err:
+        logger.info(str(err))
+        exit(2)
+
+def drop(args):
+    """
+    删除表
+    """
+    logger = logging.getLogger(name)
+    cnx = None
+    try:
+        cnx = connector.connect(host=args.host,port=args.port,user=args.user,password=args.password,database=args.database)
+        cursor = cnx.cursor()
+        cursor.execute(f"drop table {args.database}.{args.table};")
+        cnx.commit()
+    except connector.Error as err:
+        logger.error(str(err))
+        sys.exit(3)
+
+    
 
 def main():
     check_python_version()
     args = parse_cmd_arags()
     config_logger(args)
+    logger = logging.getLogger(name)
+
     if args.action == 'create':
         create(args)
-
+    elif args.action == 'insert':
+        start = time.time()
+        logger.info(f"start time = {start}")
+        logger.info("****")
+        logger.info("****")
         
+        # 多线程的支持
+        if args.thread > 1:
+            #threading.Thread()
+            batch_size = int(args.rows / args.thread)
+            works = []
+            for i in range(args.thread):
+                t = threading.Thread(target=insert,args=(args,batch_size))
+                t.start()
+                works.append(t)
+
+            #time.sleep(0.1)
+            for t in works:
+                t.join()
+        else:
+            insert(args,args.rows)
+        # 完成后统计结果
+        stop = time.time()
+        duration = "{0:.2f}".format((stop - start))
+        tps = "{0:.2f}".format(args.rows/(stop - start))
+        logger.info("****")
+        logger.info("****")
+        logger.info(f"stop time = {stop}")
+        logger.info(f"TPS:{tps} duration {duration}(s)")
+
+    elif args.action == 'drop':
+        drop(args)
+
 
 if __name__ == "__main__":
     main()
-    logger = logging.getLogger(name)
-    logger.info("hello world.")
 

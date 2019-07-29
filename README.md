@@ -19,6 +19,7 @@ homepage:**http://www.sqlpy.com**
 - [查询给定目录中的大文件 -- mtls-big-files](#查询给定目录中的大文件)
 - [温和删除表中的行 -- mtls-delete-rows](#温和删除表中的行)
 - [温和文件截断 -- mtls-file-truncate](#温和文件截断)
+- [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
 ---
 
 ## 关于
@@ -589,3 +590,94 @@ homepage:**http://www.sqlpy.com**
                            sleep time per truncate
    ```
    ---
+
+## 数据库性能测试
+   **mtls-perf-bench 的目标，我们希望在申请到一个数据库实例的时候对其进行一下性能测试，有人会说了大哥，这活 sysbench 不是会干吗？一点都没有错 sysbench 是可以做性能测试，它非常的优秀，以致于成为了业界一个事实的标准。**
+
+   **sysbench 也有它不好的地方，主要在于它的表结构是“固定”的，我们用 sysbench 可以测试出来上百万的qps，用我们自己的表结构可以跑多少分呢？mtls-perf-bench 想解决在特定表结构下的性能的测量问题。**
+
+   **mtls-perf-bench 希望通过测试发现参数上可以调整的地方，这样可以更早的发现实例存在的配置问题，之后也希望 mtls-perf-bench 可以作为一个诊断分析的工具。**
+
+   ---
+
+   **0、** 在目标实例上创建测试用户并授权
+   ```sql
+   create user mpdb@'%' identified by '123456';
+   grant all on tempdb.* to mpdb@'%';
+   ```
+
+   **1、** 创建表
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456 \
+   --ints=4 --floats=2 --varchars=2 create
+
+   2019-07-29 14:58:56,581  mtls-perf-bench  9031  MainThread  INFO  create table sql statement: create table tempdb.t ( id int not null auto_increment primary key,i0 int not null,i1 int not null,i2 int not null,i3 int not null,c0 varchar(128) not null,c1 varchar(128) not null,f0 float not null,f1 float not null);
+   2019-07-29 14:58:56,619  mtls-perf-bench  9031  MainThread  INFO  complete
+   ```
+   ```sql
+   show create table t;
+   
+   CREATE TABLE `t` (
+     `id` int(11) NOT NULL AUTO_INCREMENT,
+     `i0` int(11) NOT NULL,
+     `i1` int(11) NOT NULL,
+     `i2` int(11) NOT NULL,
+     `i3` int(11) NOT NULL,
+     `c0` varchar(128) COLLATE utf8mb4_general_ci NOT NULL,
+     `c1` varchar(128) COLLATE utf8mb4_general_ci NOT NULL,
+     `f0` float NOT NULL,
+     `f1` float NOT NULL,
+     PRIMARY KEY (`id`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+   ```
+   **2、** insert 性能测试
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456    --ints=4 --floats=2 --varchars=2 --thread=4 --rows=20000 insert
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  start time = 1564393220.574386
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  Thread-1  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-2  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-3  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-4  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  stop time = 1564393236.117363
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  TPS:1286.75 duration 15.54(s)
+   ```
+   >可以看到四个迸发下tps为 1286.75 
+
+   **3、** 清理环境
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456  drop 
+   ```
+
+   **其它**
+
+   目前 mtls-perf-bench 支持的操作
+   |**操作名**|**注释**|
+   |---------|-------|
+   |create   | 根据给定的参数创建表|
+   |insert   | 执行插件操作并记录tps|
+   |select   | 执行查询操作并记录qps(开发中)|
+   |update   | 执行更新操作并记录tps(开发中)|
+   |delete   | 执行删除操作并记录tps(开发中)|
+   |drop     | 删除表|
+   
+   **mtls-perf-bench 优势与劣势**
+
+   0、mtls-perf-bench 支持灵活的指定表的列数与类型
+
+   1、mtls-perf-bench 支持单线程和我线程两种工作模式
+   
+   a、由于 GIL 锁的存在所以 python 并没有真正的多线程，总的来讲 mtls-perf-bench 是一个IO密集型的程序，再加上我们一次只压一张表，所以整体上还是可以接受的。
+
+   ---
+
+
+
+
+
+
+
+

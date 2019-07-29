@@ -7,6 +7,7 @@ bin/mtls-file-truncate
 bin/mtls-http
 bin/mtls-log
 bin/mtls-monitor
+bin/mtls-perf-bench
 bin/mtlsanalysis
 bin/mtlsbackup
 bin/mtlsbigfiles
