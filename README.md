@@ -652,9 +652,55 @@ homepage:**http://www.sqlpy.com**
    mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456  drop 
    ```
 
+   **4、** 更多用法请查看帮助手册
+   ```bash
+   mtls-perf-bench --help
+   usage: mtls-perf-bench [-h] [--host HOST] [--port PORT] [--user USER]
+                          [--password PASSWORD] [--database DATABASE]
+                          [--table TABLE] [--thread THREAD] [--rows ROWS]
+                          [--log-level {info,debug,error}]
+                          [--auto-primary-key {False,True}] [--ints INTS]
+                          [--floats FLOATS] [--doubles DOUBLES]
+                          [--varchars VARCHARS] [--varchar-length VARCHAR_LENGTH]
+                          [--decimals DECIMALS]
+                          [--decimal-precision DECIMAL_PRECISION]
+                          [--decimal-scale DECIMAL_SCALE]
+                          {create,drop,insert}
+   
+   positional arguments:
+     {create,drop,insert}
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --host HOST           mysql host
+     --port PORT           mysql port
+     --user USER           mysql user
+     --password PASSWORD   mysql user's passowrd
+     --database DATABASE   work schema(database)
+     --table TABLE         work table
+     --thread THREAD       parralel threads
+     --rows ROWS           rows
+     --log-level {info,debug,error}
+     --auto-primary-key {False,True}
+                           whether table has primary key
+     --ints INTS           int column counts
+     --floats FLOATS       float column counts
+     --doubles DOUBLES     double column counts
+     --varchars VARCHARS   varchar column counts
+     --varchar-length VARCHAR_LENGTH
+                           varchar column length default 128
+     --decimals DECIMALS   decimal column counts
+     --decimal-precision DECIMAL_PRECISION
+                           total digits length
+     --decimal-scale DECIMAL_SCALE
+                           the scale of decimal(the number of digits to the right
+                           of the decimal point)
+   ```
+
    **其它**
 
    目前 mtls-perf-bench 支持的操作
+
    |**操作名**|**注释**|
    |---------|-------|
    |create   | 根据给定的参数创建表|
