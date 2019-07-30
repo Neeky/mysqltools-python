@@ -10,7 +10,7 @@ news_scripts = ['bin/mtls-big-files','bin/mtls-delete-rows','bin/mtls-file-trunc
 scripts = olds_scripts + news_scripts
 
 setup(name='mysqltools-python',
-      version='2.19.07.29',
+      version='2.19.07.30',
       scripts=scripts,
       packages=['mtls','mtls.kits'],
       maintainer='Neeky',

@@ -11,9 +11,11 @@ import string
 import logging
 import argparse
 import threading
+import concurrent.futures
 from mysql import connector
 from collections import namedtuple
 from mysql.connector import errorcode
+from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 
 
 name = os.path.basename(__file__)
@@ -40,7 +42,8 @@ def parse_cmd_arags() -> argparse.ArgumentParser:
     parser.add_argument('--password',type=str,default='apps_352',help="mysql user's passowrd ")
     parser.add_argument('--database',type=str,default="tempdb",help="work schema(database)")
     parser.add_argument('--table',type=str,default="t",help="work table")
-    parser.add_argument('--thread',type=int,default=1,help='parralel threads')
+    parser.add_argument('--parallel',type=int,default=1,help="parallel workers")
+    #parser.add_argument('--thread',type=int,default=1,help='parallel threads')
     parser.add_argument('--rows',type=int,default=100,help="rows")
     parser.add_argument('--log-level',type=str,choices=['info','debug','error'],default="info")
     parser.add_argument('--auto-primary-key',type=to_bool,default=True,choices=[False,True],help="whether table has primary key")
@@ -269,21 +272,19 @@ def main():
         logger.info(f"start time = {start}")
         logger.info("****")
         logger.info("****")
-        
-        # 多线程的支持
-        if args.thread > 1:
-            #threading.Thread()
-            batch_size = int(args.rows / args.thread)
-            works = []
-            for i in range(args.thread):
-                t = threading.Thread(target=insert,args=(args,batch_size))
-                t.start()
-                works.append(t)
 
-            #time.sleep(0.1)
-            for t in works:
-                t.join()
+        # 多进程压力测试
+        if args.parallel > 1:
+            # 计算出每一个进程要执行的插入行数
+            batch_size = int(args.rows / args.parallel)
+            # 创建进程池
+            with ProcessPoolExecutor(max_workers=args.parallel) as e:
+                futures = [e.submit(insert,args,batch_size) for i in range(args.parallel)]
+                for future in concurrent.futures.as_completed(futures):
+                    # 取得“期物的值”以此来触发执行
+                    _ = future.result()
         else:
+            # 单进程压力测试
             insert(args,args.rows)
         # 完成后统计结果
         stop = time.time()

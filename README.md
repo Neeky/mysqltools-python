@@ -602,8 +602,8 @@ homepage:**http://www.sqlpy.com**
 
    **0、** 在目标实例上创建测试用户并授权
    ```sql
-   create user mpdb@'%' identified by '123456';
-   grant all on tempdb.* to mpdb@'%';
+   create user mpb@'%' identified by '123456';
+   grant all on tempdb.* to mpb@'%';
    ```
 
    **1、** 创建表
@@ -632,7 +632,7 @@ homepage:**http://www.sqlpy.com**
    ```
    **2、** insert 性能测试
    ```bash
-   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456    --ints=4 --floats=2 --varchars=2 --thread=4 --rows=20000 insert
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456    --ints=4 --floats=2 --varchars=2 --parallel=4 --rows=20000 insert
    2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  start time = 1564393220.574386
    2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
    2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
@@ -657,7 +657,7 @@ homepage:**http://www.sqlpy.com**
    mtls-perf-bench --help
    usage: mtls-perf-bench [-h] [--host HOST] [--port PORT] [--user USER]
                           [--password PASSWORD] [--database DATABASE]
-                          [--table TABLE] [--thread THREAD] [--rows ROWS]
+                          [--table TABLE] [--parallel PARALLEL] [--rows ROWS]
                           [--log-level {info,debug,error}]
                           [--auto-primary-key {False,True}] [--ints INTS]
                           [--floats FLOATS] [--doubles DOUBLES]
@@ -678,7 +678,7 @@ homepage:**http://www.sqlpy.com**
      --password PASSWORD   mysql user's passowrd
      --database DATABASE   work schema(database)
      --table TABLE         work table
-     --thread THREAD       parralel threads
+     --parallel PARALLEL   parallel workers
      --rows ROWS           rows
      --log-level {info,debug,error}
      --auto-primary-key {False,True}
@@ -716,7 +716,7 @@ homepage:**http://www.sqlpy.com**
 
    1、mtls-perf-bench 支持单线程和我线程两种工作模式
    
-   a、由于 GIL 锁的存在所以 python 并没有真正的多线程，总的来讲 mtls-perf-bench 是一个IO密集型的程序，再加上我们一次只压一张表，所以整体上还是可以接受的。
+   a、由于 GIL 锁的存在所以 python 并没有真正的多线程，总的来讲 mtls-perf-bench 是一个IO密集型的程序，再加上我们一次只压一张表，所以整体上还是可以接受的。2.19.07.30 版本之后已经是多进程模型了。
 
    ---
 
