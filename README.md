@@ -20,6 +20,7 @@ homepage:**http://www.sqlpy.com**
 - [温和删除表中的行 -- mtls-delete-rows](#温和删除表中的行)
 - [温和文件截断 -- mtls-file-truncate](#温和文件截断)
 - [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
+- [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
 ---
 
 ## 关于
@@ -38,7 +39,8 @@ homepage:**http://www.sqlpy.com**
    |mtls-big-files| 查询出给定目录下的大文件名|
    |mtls-http| tcp(http)端口连通性测试|
    |mtls-log | 慢查询日志切片|
-   |mtls-perfbench| 数据库跑分工具(开发中)|
+   |mtls-perf-bench| 数据库跑分工具(开发中)|
+   |mtls-kill-all-connections | 杀死所有的客户端连接|
 
    ---
 
@@ -714,11 +716,38 @@ homepage:**http://www.sqlpy.com**
 
    0、mtls-perf-bench 支持灵活的指定表的列数与类型
 
-   1、mtls-perf-bench 支持单线程和我线程两种工作模式
-   
-   a、由于 GIL 锁的存在所以 python 并没有真正的多线程，总的来讲 mtls-perf-bench 是一个IO密集型的程序，再加上我们一次只压一张表，所以整体上还是可以接受的。2.19.07.30 版本之后已经是多进程模型了。
+   1、mtls-perf-bench 支持单进程和多进程两种工作模式
 
    ---
+
+## 断开所有的客户端连接
+   **有些时候出于一些特殊的原因，我们想把所有的客户端连接都 kill 掉**
+   
+   **1、** kill 之前
+   ```sql
+   show processlist;
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   | Id | User            | Host      | db   | Command | Time | State                  | Info             |
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   |  4 | event_scheduler | localhost | NULL | Daemon  |  229 | Waiting on empty queue | NULL             |
+   | 13 | root            | localhost | NULL | Query   |    0 | starting               | show processlist |
+   | 14 | root            | localhost | NULL | Sleep   |   10 |                        | NULL             |
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   3 rows in set (0.01 sec)
+   ```
+   ---
+
+   **2、** 发起 kill 指令
+   ```bash
+   mtls-kill-all-conections --host=127.0.0.1 --user=root --port=3306 --password='xxxxx'
+
+   2019-08-07 15:30:21,353 INFO kill 13;
+   2019-08-07 15:30:21,354 INFO kill 14;
+   ```
+   >mtls-kill-all-conections 对 event、Dump 纯种是开了白名单的，所以他们不会被 kill 掉。
+
+   ---
+
 
 
 
