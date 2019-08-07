@@ -50,6 +50,7 @@ def parse_cmd_arags() -> argparse.ArgumentParser:
     parser.add_argument('--ints',type=int,default=0,help="int column counts")
     parser.add_argument('--floats',type=int,default=0,help="float column counts")
     parser.add_argument('--doubles',type=int,default=0,help='double column counts')
+    parser.add_argument('--texts',type=int,default=0,help="text column counts")
     parser.add_argument('--varchars',type=int,default=0,help="varchar column counts")
     parser.add_argument('--varchar-length',type=int,default=128,help="varchar column length default 128")
     parser.add_argument('--decimals',type=int,default=0,help="decimal column counts")
@@ -110,8 +111,12 @@ def create(args:argparse.ArgumentParser):
             logger.error("decimal-precision argument must big then 0")
             sys.exit(3)
         for d in range(args.decimals):
-            columns.append(f"dm{d} decimal({args.decimal_precision},{args.decimal_scale})")
-
+            columns.append(f"dm{d} decimal({args.decimal_precision},{args.decimal_scale}) not null")
+    # 检查 text 字段的数量
+    if args.texts >=1:
+        for t in range(args.texts):
+            columns.append(f"t{t} text not null")
+    
     # 如果没有指定任何类型的列，那么直接退出
     if len(columns) == 1 and args.auto_primary_key==True:
         logger.error(f"do not have any columns in table {args.database}.{args.table}")
@@ -204,6 +209,10 @@ def insert_sql(args:argparse.ArgumentParser) -> tuple:
     if args.decimals >= 1:
         for dm in range(args.decimals):
             columns.append( (f"dm{dm}",get_float_value) )
+    
+    if args.texts >= 1:
+        for t in range(args.texts):
+            columns.append( (f"t{t}",get_str_value) )
 
     if len(columns) == 0:
         logger.error(f"columns counts equal 0")
@@ -256,6 +265,7 @@ def drop(args):
     except connector.Error as err:
         logger.error(str(err))
         sys.exit(3)
+
 
     
 
