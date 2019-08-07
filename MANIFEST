@@ -5,6 +5,7 @@ bin/mtls-big-files
 bin/mtls-delete-rows
 bin/mtls-file-truncate
 bin/mtls-http
+bin/mtls-kill-all-conections
 bin/mtls-log
 bin/mtls-monitor
 bin/mtls-perf-bench
@@ -18,6 +19,7 @@ bin/mtlsmonitor
 mtls/__init__.py
 mtls/base.py
 mtls/binlog.py
+mtls/core.py
 mtls/innodb_statu.py
 mtls/inspection.py
 mtls/mgr.py
