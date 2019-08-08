@@ -744,7 +744,7 @@ homepage:**http://www.sqlpy.com**
    2019-08-07 15:30:21,353 INFO kill 13;
    2019-08-07 15:30:21,354 INFO kill 14;
    ```
-   >mtls-kill-all-conections 对 event、Dump 纯种是开了白名单的，所以他们不会被 kill 掉。
+   >mtls-kill-all-conections 对 event、Dump 线程开了白名单，所以他们不会被 kill 掉。
 
    ---
 
