@@ -21,6 +21,7 @@ homepage:**http://www.sqlpy.com**
 - [温和文件截断 -- mtls-file-truncate](#温和文件截断)
 - [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
 - [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
+- [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
 ---
 
 ## 关于
@@ -677,7 +678,7 @@ homepage:**http://www.sqlpy.com**
      --host HOST           mysql host
      --port PORT           mysql port
      --user USER           mysql user
-     --password PASSWORD   mysql user's passowrd
+     --password PASSWORD   mysql user \'s passowrd
      --database DATABASE   work schema(database)
      --table TABLE         work table
      --parallel PARALLEL   parallel workers
@@ -748,6 +749,44 @@ homepage:**http://www.sqlpy.com**
 
    ---
 
+## 统计慢查询文件中的SQL类型与热点表
+   **用于分类统计慢查询文件中各类 SQL 出现的次数，热点表出现的次数**
+   ```bash
+   mtls-sql-distribution slow.log 
+
+
+   ------------------------------------------------
+   SQL出现频率如下:                                     
+   ------------------------------------------------
+   select                  |25                     
+   insert                  |19                     
+   update                  |0                      
+   delete                  |0                      
+   ------------------------------------------------
+   
+   
+   ------------------------------------------------
+   表名出现频率如下:                                      
+   ------------------------------------------------
+   t                                       |21     
+   tempdb.t                                |20     
+   data_locks                              |1      
+   ------------------------------------------------
+   ```
+   >说明 select 出现了 25 次，insert 出现了 19 次； t 表在慢查询中出现了 21 次 ... ...
+
+   **1、更多用法可以查看帮助信息**
+   ```bash
+   mtls-sql-distribution  --help
+   usage: mtls-sql-distribution [-h] [--limit LIMIT] sqlfile
+   
+   positional arguments:
+     sqlfile        slow query log file
+   
+   optional arguments:
+     -h, --help     show this help message and exit
+     --limit LIMI
+   ``` 
 
 
 
