@@ -22,6 +22,7 @@ def parser_cmd_args() -> argparse.ArgumentParser:
     parser.add_argument('--port',type=int,default=3306,help="mysql port")
     parser.add_argument('--user',type=str,default="opsuser",help="mysql user")
     parser.add_argument('--password',type=str,default="mtls0352",help="mysql user's password")
+    parser.add_argument('--target-user',type=str,default=None,help="target user's session")
     args = parser.parse_args()
     return args
 
@@ -39,8 +40,10 @@ def kill_all_connections(args):
 
         # 查询出当前主机上的所有连接
         processlist_ids = []
-        cursor.execute("select id from information_schema.processlist where command not in ('Daemon','Binlog Dump') ;")
-
+        if args.target_user == None:
+            cursor.execute("select id from information_schema.processlist where command not in ('Daemon','Binlog Dump') ;")
+        else:
+            cursor.execute("select id from information_schema.processlist where command not in ('Daemon','Binlog Dump') and user=%s;",(args.target_user,))
         # 提取出 processlist id 
         for ip,*_ in cursor.fetchall():
             if ip != self_connection_id:
