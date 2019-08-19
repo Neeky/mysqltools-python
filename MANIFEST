@@ -9,6 +9,7 @@ bin/mtls-kill-all-conections
 bin/mtls-log
 bin/mtls-monitor
 bin/mtls-perf-bench
+bin/mtls-sql-distribution
 bin/mtlsanalysis
 bin/mtlsbackup
 bin/mtlsbigfiles

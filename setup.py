@@ -5,12 +5,12 @@ olds_scripts = ['bin/mtlsmonitor','bin/mtlsbackup','bin/mtlslog','bin/mtlsanalys
 
 news_scripts = ['bin/mtls-big-files','bin/mtls-delete-rows','bin/mtls-file-truncate',
                 'bin/mtls-http','bin/mtls-log','bin/mtls-monitor','bin/mtls-backup',
-                'bin/mtls-perf-bench','bin/mtls-kill-all-conections']
+                'bin/mtls-perf-bench','bin/mtls-kill-all-conections','bin/mtls-sql-distribution']
 
 scripts = olds_scripts + news_scripts
 
 setup(name='mysqltools-python',
-      version='2.19.08.01',
+      version='2.19.08.16',
       scripts=scripts,
       packages=['mtls','mtls.kits'],
       maintainer='Neeky',
