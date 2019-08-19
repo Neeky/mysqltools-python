@@ -42,6 +42,7 @@ homepage:**http://www.sqlpy.com**
    |mtls-log | 慢查询日志切片|
    |mtls-perf-bench| 数据库跑分工具(开发中)|
    |mtls-kill-all-connections | 杀死所有的客户端连接|
+   |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
 
    ---
 
