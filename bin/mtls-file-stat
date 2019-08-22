@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+
+import os
+import re
+import sys
+import stat
+import logging
+import argparse
+from datetime import datetime
+
+name = os.path.basename(__file__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",level=logging.INFO)
+
+def parser_cmd_args() -> argparse.ArgumentParser:
+    """
+    处理命令行参数
+    """
+
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('topdir',type=str,default="/tmp/")
+    parser.add_argument('--order-by',type=str,default='mtime',choices=['atime','mtime','ctime'])
+    parser.add_argument('--baseline',type=str,default=datetime.now().isoformat())
+    args = parser.parse_args()
+    return args
+
+
+class FileStat(object):
+    """
+    定义一个用于保存 FileStat 的容器
+    """
+    __slots__ = ('filepath','ctime','mtime','atime')
+
+    def __init__(self,filepath,ctime,mtime,atime):
+        self.filepath = filepath
+        self.ctime = datetime.fromtimestamp(ctime)
+        self.mtime = datetime.fromtimestamp(mtime)
+        self.atime = datetime.fromtimestamp(atime)
+
+    def __str__(self):
+        return "{0:<48} | {1:20} | {2:20} | {3:20}\n".format(self.filepath,self.mtime.isoformat(),self.atime.isoformat(),self.ctime.isoformat())
+    
+
+class FileStatGather(object):
+    """
+    根据给出的目录广度搜索文件的Stat信息
+    """
+    def __init__(self,topdir,order_by,baseline):
+        """
+        """
+        # 如果 topdir 不是目录，说明参数有问题，直接退出程序
+        if not os.path.isdir(topdir):
+            logging.error(f"{topdir} 不是目录，{name} 准备退出")
+            sys.exit(3)
+        self.baseline = datetime.fromisoformat(args.baseline).timestamp()
+        self.order_by = order_by
+        self.file_stats = []
+        self.topdir = topdir
+        self.walktree(topdir)
+
+    def walktree(self,top_dir):
+        """
+        """
+        logging.info(f"准备扫描目录 {top_dir}")
+        try:
+            for item in os.listdir(top_dir):
+                pathname = os.path.join(top_dir,item)
+                if os.path.isfile(pathname):
+                    *_,atime,mtime,ctime = os.stat(pathname)
+                    if self.order_by == 'mtime' and mtime < self.baseline:
+                        self.file_stats.append(FileStat(pathname,atime=atime,mtime=mtime,ctime=ctime))
+                    elif self.order_by == 'ctime' and ctime < self.baseline:
+                        self.file_stats.append(FileStat(pathname,atime=atime,mtime=mtime,ctime=ctime))
+                    elif self.order_by == 'atime' and atime < self.baseline:
+                        self.file_stats.append(FileStat(pathname,atime=atime,mtime=mtime,ctime=ctime))
+                elif os.path.isdir(pathname):
+                    self.walktree(pathname)
+                else:
+                    pass
+        except Exception as err:
+            logging.warning(str(err))
+            
+
+    def __str__(self):
+        s = "\n\n"
+        s = s + f"{self.topdir} 目录下文件统计信息明细 (order by {self.order_by} 小于 {datetime.fromtimestamp(self.baseline).isoformat()}):\n"
+        s = s + '-' * 116 + '\n'
+        s = s + "{0:<48} | {1:20} | {2:20} | {3:20}\n".format("file-path","mtime","atime","ctime")
+        s = s + '-' * 116 + '\n'
+
+        # 过滤出系统库中的表
+        _tmp = []
+        for item in self.file_stats:
+            *_,databasename,filename = item.filepath.split('/')
+            if databasename not in ('performance_schema','mysql','information_schema','sys') and not filename.endswith('pem') and not re.search(r"([0-9]{6,6})$",filename):
+                _tmp.append(item)
+        self.file_stats = _tmp
+
+        if self.order_by == 'atime':
+            self.file_stats.sort(key=lambda s : s.atime)
+        elif self.order_by == 'ctime':
+            self.file_stats.sort(key=lambda s: s.ctime)
+        else:
+            self.file_stats.sort(key=lambda s: s.mtime)
+
+        for i in self.file_stats:
+            s = s + str(i)
+        
+        return s
+
+
+if __name__ == "__main__":
+    args = parser_cmd_args()
+    fsg = FileStatGather(args.topdir,args.order_by,args.baseline)
+    print(fsg)
+
+    

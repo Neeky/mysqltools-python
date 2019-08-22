@@ -22,6 +22,7 @@ homepage:**http://www.sqlpy.com**
 - [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
 - [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
 - [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
+- [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
 ---
 
 ## 关于
@@ -43,6 +44,7 @@ homepage:**http://www.sqlpy.com**
    |mtls-perf-bench| 数据库跑分工具(开发中)|
    |mtls-kill-all-connections | 杀死所有的客户端连接|
    |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
+   |mtls-file-stat| 表的最晚更新时间统计|
 
    ---
 
@@ -788,6 +790,51 @@ homepage:**http://www.sqlpy.com**
      -h, --help     show this help message and exit
      --limit LIMI
    ``` 
+
+   ---
+
+## 表的最晚更新时间统计
+   **mtls-file-stat 用于分析某一时间点之后就再没有更新过的表，比如说一套系统上线好几年了，经过了 n 次迭代，
+   有一些表早就不用了，但是并没有对它进行删除，这就使得这些占用的空间永远不会被释放，mtls-file-stat 就是用来
+   找出这些可疑的表**
+
+   **以找出 2019-08-20T00:00:00 后再也没有更新过的文件为例子**
+   ```bash
+   cd /database/mysql/data/
+
+   mtls-file-stat --baseline=2019-08-20T00:00:00 3306
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/#innodb_temp
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/mysql
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/performance_schema
+   2019-08-22 16:35:16,530 INFO 准备扫描目录 3306/sys
+   2019-08-22 16:35:16,530 INFO 准备扫描目录 3306/tempdb
+   
+   
+   3306 目录下文件统计信息明细 (order by mtime 小于 2019-08-20T00:00:00):
+   --------------------------------------------------------------------------------------------------------------------
+   file-path                                        | mtime                | atime                | ctime               
+   --------------------------------------------------------------------------------------------------------------------
+   3306/auto.cnf                                    | 2019-07-24T18:52:46  | 2019-08-21T14:35:14  | 2019-07-24T18:52:46 
+   3306/tempdb/t2.ibd                               | 2019-08-06T11:30:08  | 2019-08-21T14:35:13  | 2019-08-06T11:30:08 
+   3306/tempdb/t3.ibd                               | 2019-08-14T14:14:29  | 2019-08-21T14:35:13  | 2019-08-14T14:14:2
+   ```
+   更新多信息可以查看帮助
+   ```bash
+   mtls-file-stat --help
+   usage: mtls-file-stat [-h] [--order-by {atime,mtime,ctime}]
+                         [--baseline BASELINE]
+                         topdir
+   
+   positional arguments:
+     topdir
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --order-by {atime,mtime,ctime}
+     --baseline BASELIN
+   ```
+
 
 
 
