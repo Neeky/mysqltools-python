@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-import socket
+import os
 import sys
+import socket
 import select
-from datetime import datetime
+import logging
 import argparse
+from datetime import datetime
 
-def block_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
+name = os.path.basename(__file__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",level=logging.INFO)
+
+
+def block_http_server(ip='127.0.0.1',port=8080,msg='mtls-http is working ...'):
     """工作在阻塞模式下的 http 服务器
     """
     try:
@@ -46,86 +52,88 @@ def main_loop(poll):
         for fileno,event in events:
             yield fileno,event
 
-def aio_http_server(ip='127.0.0.1',port=8080,msg='mtlshttp is working ...'):
+def aio_http_server(ip='127.0.0.1',port=8080,msg='mtls-http is working ...'):
     """基于异步IO的http服务端
     """
-    print("{0} | prepare start aio http server".format(datetime.now()))
-    html="""<html>
+    logging.info("异步 http 服务器启动监听")
+    html=f"""<html>
         <head>
             <title> aio http server </title>
         </head>
         <body>
-            <h1>{0}</h1>
+            <h1>{msg}</h1>
+            <p>异步 http 服务器启动时间: {datetime.now().isoformat(' ')}</p>
         </body>
     </html>
-    """.format(msg)
+    """
+    logging.info("静态 html 模板生成完成")
     length_html = len(html.encode('utf8'))
-    head = 'HTTP/1.0 200 OK\r\nDate: Mon, 1 Jan 2049 01:01:01 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {0}\r\n\r\n'.format(length_html)
+    head = f"HTTP/1.0 200 OK\r\nDate: {datetime.now().isoformat(' ')}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: {length_html}\r\n\r\n"
     rspns = (head + html).encode('utf8')
+    logging.info("TCP 字节流准备完成")
     try:
         poll = select.poll()
         with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as serversock:
-            serversock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            serversock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,True)
+            serversock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEPORT,True)
             serversock.bind((ip,port))
-            serversock.listen(8)
+            serversock.listen(16)
+            logging.info(f"异常IO套节字准备完成 http://{ip}:{port}")
 
             poll.register(serversock.fileno(),select.POLLIN)
-
+            logging.info(f"等待客户端的连接请求")
             serversock_fileno = serversock.fileno()
             connections = {}
             requests = {}
             responses = {}
-
+            addres = {}
             for fileno,event in main_loop(poll):
                 if fileno == serversock_fileno:
-                    print("{0} | have a new connection arive".format(datetime.now()))
                     clientsock,client_addr = serversock.accept()
+                    logging.info(f"{client_addr[0]}:{client_addr[1]} 发来连接请求")
                     clientsock.setblocking(False)
                     poll.register(clientsock.fileno(),select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                     connections[clientsock.fileno()] = clientsock
                     requests[clientsock.fileno()] = b''
                     responses[clientsock.fileno()] = rspns
+                    addres[clientsock.fileno()]=client_addr
+
+                elif event & select.POLLHUP:
+                    addr = addres[fileno]
+                    logging.info(f"客户端{addr[0]}:{addr[1]}的连接断开")
+                    del connections[fileno]
+                    del requests[fileno]
+                    del responses[fileno]
+                    del addres[fileno]
+                    poll.unregister(fileno)
                 elif event & select.POLLIN:
-                    print("{0} | got message from client ".format(datetime.now()))
-                    try:
-                        data = connections[fileno].recv(4096)
-                    except ConnectionResetError:
-                        # 处理客户端主动断开的异常
-                        data = b''
-                    if  not data:
-                        print("{0} | client want disclose connection".format(datetime.now()))
-                        # 返回的数据为 b'' 说明是一个 FIN 信号，这下要断开连接了
-                        connections[fileno].close()
-                        del connections[fileno]
-                        del requests[fileno]
-                        del responses[fileno]
-                        poll.unregister(fileno)
-                        print("{0} | connection closed".format(datetime.now()))
-                        print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
-                        continue
+                    addr = addres[fileno]
+                    logging.info(f"{addr[0]}:{addr[1]} 发来信息")
+                    data = connections[fileno].recv(4096)
                     requests[fileno] += data
 
                     if b'\r\n\r\n' in requests[fileno]:
-                        print("{0} | all message has been readed".format(datetime.now()))
+                        logging.info(f"{addr[0]}:{addr[1]} 发来的信息接收完成")
                         requests[fileno] = b''
-                        # http 请求头部接收完成
                         poll.modify(fileno,select.POLLOUT | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                 elif event & select.POLLOUT:
-                    print("{0} | seding message to client".format(datetime.now()))
+                    addr = addres[fileno]
+                    logging.info(f"发送响应报文到 {addr[0]}:{addr[1]}")
                     send_len = connections[fileno].send(responses[fileno])
                     responses[fileno] = responses[fileno][send_len:]
                     if len(responses[fileno]) == 0:
                         poll.modify(fileno,select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
                         responses[fileno] = rspns
                 elif event & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
-                    print("{0} | some error happend disclose connection".format(datetime.now()))
+                    logging.info("POLL.OTHER ")
                     connections[fileno].close()
                     del connections[fileno]
                     del requests[fileno]
                     del responses[fileno]
-                
-                print("{0} | current connection counts {1} ".format(datetime.now(),len(connections)))
+                    del addres[fileno]
+                logging.info(f"当前服务端依然保持着 {len(connections)} 个连接")
     except KeyboardInterrupt as err:
+        logging.error(str(err))
         sys.exit()
     finally:
         poll.unregister(serversock_fileno)
@@ -136,10 +144,10 @@ servers = {
 }
 
 if __name__ == "__main__":
-    parse = argparse.ArgumentParser('tmlshttp')
+    parse = argparse.ArgumentParser(name)
     parse.add_argument('--ip',default='127.0.0.1',help='listening ip')
     parse.add_argument('--port',default=8080,type=int,help='listening port')
-    parse.add_argument('--message',default='mtlshttp is working ...',help='display message')
+    parse.add_argument('--message',default='mtls-http is working ...',help='display message')
     parse.add_argument('--server-type',default='aio',help='http server type',choices=('aio','block'))
     args = parse.parse_args()
     servers[args.server_type](args.ip,args.port,args.message)
