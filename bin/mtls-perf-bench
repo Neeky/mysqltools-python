@@ -250,6 +250,9 @@ def insert(args,rows):
     except connector.Error as err:
         logger.info(str(err))
         exit(2)
+    finally:
+        if cnx and hasattr(cnx,'close'):
+            cnx.close()
 
 def drop(args):
     """
@@ -265,6 +268,9 @@ def drop(args):
     except connector.Error as err:
         logger.error(str(err))
         sys.exit(3)
+    finally:
+        if cnx and hasattr(cnx,'close'):
+            cnx.close()
 
 
     
