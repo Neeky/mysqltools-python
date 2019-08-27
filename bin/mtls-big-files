@@ -55,6 +55,9 @@ class BigFiles(object):
     
     
     def __str__(self):
+        if len(self._files) == 0:
+            return "empty dir"
+        
         max_file_path_length = max( [len(f.file_path) for f in self._files] )
         max_size_length = max( [len(fileformat(f.file_size)) for f in self._files] )
         head = f"*" * (max_file_path_length + max_size_length + 6) + '\n'
