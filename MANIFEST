@@ -3,6 +3,7 @@ setup.py
 bin/mtls-backup
 bin/mtls-big-files
 bin/mtls-delete-rows
+bin/mtls-expired-tables
 bin/mtls-file-stat
 bin/mtls-file-truncate
 bin/mtls-http

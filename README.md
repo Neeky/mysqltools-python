@@ -23,6 +23,7 @@ homepage:**http://www.sqlpy.com**
 - [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
 - [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
 - [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
+- [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
 ---
 
 ## 关于
@@ -45,6 +46,7 @@ homepage:**http://www.sqlpy.com**
    |mtls-kill-all-connections | 杀死所有的客户端连接|
    |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
    |mtls-file-stat| 表的最晚更新时间统计|
+   |mtls-expired-tables|找出长时间没有使用过的表| 
 
    ---
 
@@ -834,7 +836,32 @@ homepage:**http://www.sqlpy.com**
      --order-by {atime,mtime,ctime}
      --baseline BASELIN
    ```
+   ---
 
+
+## 找出长时间没有使用过的表
+   **如果一张表有好几十天都有写入了，这个往往是因为业务已经不再使用这张表，但是忘记了 drop 它，mtls-expired-tables 就是用于找出这种可疑的表**
+
+   找出最晚写入时间小于一天前的表
+   ```bash
+   mtls-expired-tables --not-used-days=1 /database/mysql/data/3306
+
+   2019-09-02 14:33:24,289 INFO 分析数据目录(/database/mysql/data/3306)
+   2019-09-02 14:33:24,289 INFO 准备过虑出最近修改日期(mtime) < 2019-09-01T14:33:24.289396
+
+   tempdb.ti
+   ```
+   也支持直接保存到文件
+   ```bash
+   mtls-expired-tables --not-used-days=1 /database/mysql/data/3306 > /tmp/expired-tables.log
+   
+   2019-09-02 14:37:12,880 INFO 分析数据目录(/database/mysql/data/3306)
+   2019-09-02 14:37:12,880 INFO 准备过虑出最近修改日期(mtime) < 2019-09-01T14:37:12.880759
+   ```
+   
+
+
+   ---
 
 
 
