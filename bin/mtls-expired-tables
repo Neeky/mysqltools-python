@@ -16,9 +16,16 @@ def parser_cmd_args() -> argparse.ArgumentParser:
     """
     处理命令行参数
     """
+    def str_to_bool(s):
+        if s.upper() in ('YES','TRUE','ON'):
+            return True
+        else:
+            return False
+    
     parser = argparse.ArgumentParser(name)
-    parser.add_argument('--not-used-days',type=int,default=30)
-    parser.add_argument('datadir',type=str,default="/tmp/")
+    parser.add_argument('--black-list-mode',default='ON',type=str_to_bool,help='backup mode default on')
+    parser.add_argument('--not-used-days',type=int,default=30,help="how long the table not used(days)")
+    parser.add_argument('datadir',type=str,default="/database/mysql/data/3306/",help="mysql datadir")
     args = parser.parse_args()
     return args
 
@@ -30,8 +37,13 @@ def main():
     args = parser_cmd_args()
     baseline = datetime.now() - timedelta(days=args.not_used_days)
     datadir = args.datadir
+
     logging.info(f"分析数据目录({datadir})")
-    logging.info(f"准备过虑出最近修改日期(mtime) < {baseline.isoformat()}")
+    if args.black_list_mode:
+        logging.info(f"准备过虑出最近修改日期(mtime) < {baseline.isoformat()}")
+    else:
+        logging.info(f"准备过虑出最近修改日期(mtime) > {baseline.isoformat()}")
+    
     if not os.path.isdir(datadir):
         logging.error(f"dir '{datadir}' not exits or permission denied ")
         exit(1)
@@ -56,7 +68,10 @@ def main():
                 # 是 .ibd 文件或 .MYD 文件
                 *_,atime,mtime,ctime = os.stat(path)
                 mtime = datetime.fromtimestamp(mtime)
-                if mtime < baseline:
+                if mtime < baseline and args.black_list_mode:
+                    table,*_ = item.split('.')
+                    expired_tables.append(f"{schema}.{table}")
+                elif args.black_list_mode == False and mtime > baseline:
                     table,*_ = item.split('.')
                     expired_tables.append(f"{schema}.{table}")
 

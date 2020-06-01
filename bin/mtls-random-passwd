@@ -1,0 +1,35 @@
+#!/usr/bin/evn python3
+"""随机生成高强度的密码串
+"""
+
+import os
+import string
+import random
+import argparse
+
+
+def main():
+    """
+    """
+    # 处理参数
+    name, *_ = os.path.basename(__file__).split('.')
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('--batch', '-b', type=int, default=1,
+                        help='一次随机产生多少密码(默认一个密码)')
+    parser.add_argument('length', type=int, default=8,
+                        help='密码的长度')
+    args = parser.parse_args()
+
+    batch = args.batch if args.batch >= 1 else 1
+    length = args.length if args.length >= 8 and args.length <= 32 else 8
+
+    # 组合母串
+    s = string.digits * 4 + string.ascii_letters + '+-*![{}]|_%$^&()~' * 2
+
+    # 重生随机密码串
+    for i in range(batch):
+        print(''.join(random.sample(s, length)))
+
+
+if __name__ == "__main__":
+    main()

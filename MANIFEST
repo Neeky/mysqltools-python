@@ -11,7 +11,9 @@ bin/mtls-kill-all-conections
 bin/mtls-log
 bin/mtls-monitor
 bin/mtls-perf-bench
+bin/mtls-random-passwd
 bin/mtls-sql-distribution
+bin/mtls-sql-playback
 bin/mtlsanalysis
 bin/mtlsbackup
 bin/mtlsbigfiles
