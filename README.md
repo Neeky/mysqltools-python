@@ -24,7 +24,7 @@ homepage:**http://www.sqlpy.com**
 - [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
 - [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
 - [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
-- [批量生成随机密码 -- mtls-random-passwd](批量生成随机密码)
+- [批量生成随机密码 -- mtls-random-passwd](#批量生成随机密码)
 ---
 
 ## 关于
