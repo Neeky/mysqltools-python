@@ -24,6 +24,7 @@ homepage:**http://www.sqlpy.com**
 - [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
 - [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
 - [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
+- [批量生成随机密码 -- mtls-random-passwd](批量生成随机密码)
 ---
 
 ## 关于
@@ -870,3 +871,29 @@ homepage:**http://www.sqlpy.com**
 
 
 
+
+## 批量生成随机密码
+在创建 MySQL 用户的时候还在绞尽脑汁地想一个高强度的密码吗？现在不用这么做了，让程序完全随机的生成吧。
+```bash
+mtls-random-passwd --help
+usage: mtls-random-passwd [-h] [--batch BATCH] length
+
+positional arguments:
+  length                密码的长度
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --batch BATCH, -b BATCH
+                        一次随机产生多少密码(默认一个密码)
+```
+选项参数 --batch 指定一次生成多少个随机密码，位置参数指定密码的长度，下面的这个例子可以一次性生成 4 个 12 位长度的密码。
+```bash
+mtls-random-passwd -b 4 12
+
+L}55!|nKI3&w
+z6w2$3**I5Mh
+w_0}345&3*[L
+t~Gj1-+z8269
+```
+
+---
