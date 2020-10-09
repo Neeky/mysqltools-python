@@ -6,12 +6,13 @@ olds_scripts = ['bin/mtlsmonitor', 'bin/mtlsbackup', 'bin/mtlslog', 'bin/mtlsana
 news_scripts = ['bin/mtls-big-files', 'bin/mtls-delete-rows', 'bin/mtls-file-truncate',
                 'bin/mtls-http', 'bin/mtls-log', 'bin/mtls-monitor', 'bin/mtls-backup',
                 'bin/mtls-perf-bench', 'bin/mtls-kill-all-conections', 'bin/mtls-sql-distribution',
-                'bin/mtls-file-stat', 'bin/mtls-expired-tables', 'bin/mtls-sql-playback', 'bin/mtls-random-passwd']
+                'bin/mtls-file-stat', 'bin/mtls-expired-tables', 'bin/mtls-random-passwd',
+                'bin/mtls-rows-diff', 'bin/mtls-fake-mysqld']
 
 scripts = olds_scripts + news_scripts
 
 setup(name='mysqltools-python',
-      version='2.20.06.01',
+      version='2.20.09.07',
       scripts=scripts,
       packages=['mtls', 'mtls.kits'],
       maintainer='Neeky',

@@ -4,6 +4,7 @@ bin/mtls-backup
 bin/mtls-big-files
 bin/mtls-delete-rows
 bin/mtls-expired-tables
+bin/mtls-fake-mysqld
 bin/mtls-file-stat
 bin/mtls-file-truncate
 bin/mtls-http
@@ -12,8 +13,8 @@ bin/mtls-log
 bin/mtls-monitor
 bin/mtls-perf-bench
 bin/mtls-random-passwd
+bin/mtls-rows-diff
 bin/mtls-sql-distribution
-bin/mtls-sql-playback
 bin/mtlsanalysis
 bin/mtlsbackup
 bin/mtlsbigfiles
@@ -30,6 +31,7 @@ mtls/inspection.py
 mtls/mgr.py
 mtls/replication.py
 mtls/statu.py
+mtls/values.py
 mtls/variable.py
 mtls/kits/__init__.py
 mtls/kits/fileformat.py

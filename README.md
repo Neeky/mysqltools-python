@@ -25,6 +25,7 @@ homepage:**http://www.sqlpy.com**
 - [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
 - [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
 - [批量生成随机密码 -- mtls-random-passwd](#批量生成随机密码)
+- [自定义 mysql 消息 -- mtls-fake-mysqld](#自定义mysql消息)
 ---
 
 ## 关于
@@ -895,5 +896,24 @@ z6w2$3**I5Mh
 w_0}345&3*[L
 t~Gj1-+z8269
 ```
+
+---
+
+## 自定义mysql消息
+模拟 MySQL 服务端向客户端发送特定消息。
+
+启动 MySQL 模拟服务器
+```python
+mtls-fake-mysqld --host=127.0.0.1 --port=3306 --message='fake news next!'
+```
+
+客户端连接到模拟服务器就可以看到对应的消息了。
+```bash
+mysql -h127.0.0.1 -P3306
+ERROR 2020 (HY000): #HY000    
+fake news next!
+```
+
+这个除了可以用来发朋友圈之外，还可以用来检查到指定ip端口的网络特策略是否正常。
 
 ---

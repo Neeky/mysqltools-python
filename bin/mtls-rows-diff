@@ -1,0 +1,61 @@
+#!/usr/bin/evn python3
+# encoding:utf8
+
+"""
+比较两个文件中不同的行
+"""
+
+import os
+import sys
+import argparse
+
+
+def parser_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--source', type=str,
+                        default='/tmp/source.txt', help='源文件路径')
+    parser.add_argument('-t', '--target', type=str,
+                        default='/tmp/target.txt', help='目标文件路径')
+    return parser.parse_args()
+
+
+def diff(source_file: str, target_file: str) -> set:
+    """
+    计算 source_file 中有，但是 target_file 中没有的行
+
+    Parmter
+    ------
+        source_file: str 源文件全路径
+        target_file: str 目标文件全路径
+    """
+    if not os.path.isfile(source_file):
+        print(f"{source_file} is not a file or not exists.")
+        sys.exit(0)
+
+    if not os.path.isfile(target_file):
+        print(f"{target_file} is not a file or not exists.")
+        sys.exit(0)
+
+    with open(source_file, 'r') as source:
+        source_rows = set()
+        for line in source:
+            source_rows.update(set(line.strip()))
+
+    with open(target_file) as target:
+        target_rows = set()
+        for line in target:
+            target_rows.update(set(line.strip()))
+
+    d = source_rows - target_rows
+
+    for line in d:
+        print(d)
+
+
+def main():
+    args = parser_args()
+    diff(args.source, args.target)
+
+
+if __name__ == "__main__":
+    main()

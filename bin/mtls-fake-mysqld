@@ -1,0 +1,107 @@
+#!/usr/bin/evn python3
+"""
+模拟 MySQL 服务端，目的是做到可以自定义消息。
+"""
+
+import os
+import struct
+import socket
+import logging
+import argparse
+
+name = os.path.basename(__file__)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
+
+
+class FakeMySQLServer(object):
+    """
+    模拟 MySQL 服务端
+    """
+
+    def __init__(self, host="0.0.0.0", port=3306, message="MySQL 服务器今天不上班！"):
+        """
+        Parameter
+        ---------
+        host: str
+            FakeMySQLServer 要绑定的 IP 地址
+
+        port: int
+            FakeMySQLServer 要监听的端口
+
+        message: str
+            服务端要发给客户端的信息   
+        """
+        self.host = host
+        self.port = port
+        self.message = "    \n" + message + '\n' * 1
+
+    def run_server(self):
+        """
+        启动服务端
+        """
+        server_socket = None
+        try:
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # 地址重用与端口重用
+            server_socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+            server_socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEPORT, True)
+
+            # 启动监听队列长度设置为 5
+            server_socket.bind((self.host, self.port))
+            server_socket.listen(5)
+
+            while True:
+                try:
+                    # 循环接收客户端的连接
+                    client, _ = server_socket.accept()
+
+                    # 对消息进行编码
+                    bytes_message = self.message.encode('utf8') + b'\x00'
+                    payload_len = 9 + len(bytes_message)
+
+                    #        payload-len                          seqence-id    error-packet-content
+                    packet = struct.pack("<I", payload_len)[
+                        0:3] + b'\x00' + b'\xff\xe4\x07\x23\x48\x59\x30\x30\x30' + bytes_message
+                    client.send(packet)
+
+                    # 关闭连接
+                    client.close()
+                except Exception as err:
+                    logging.error(err)
+                    logging.exception(err)
+
+                finally:
+                    if hasattr(client, 'close'):
+                        client.close()
+
+        except Exception as err:
+            logging.error(err)
+            logging.exception(err)
+        finally:
+            if hasattr(server_socket, 'close'):
+                server_socket.close()
+
+
+def parser_cmd_args() -> argparse.ArgumentParser:
+    """
+    处理命令行参数
+    """
+    parser = argparse.ArgumentParser(name)
+    parser.add_argument('--host', type=str,
+                        default='0.0.0.0', help='Fake-MySQL-Server 要绑定的IP')
+    parser.add_argument('--port', type=int, default=3306,
+                        help="Fake-MySQL-Server 要监听的端口")
+    parser.add_argument('--message', type=str,
+                        default="MySQL 服务器今天不上班！", help="要发送给客户端的信息")
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = parser_cmd_args()
+    fake = FakeMySQLServer(args.host, args.port, args.message)
+    fake.run_server()
