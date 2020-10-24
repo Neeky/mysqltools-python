@@ -34,7 +34,7 @@ class FakeMySQLServer(object):
         """
         self.host = host
         self.port = port
-        self.message = "    \n" + message + '\n' * 1
+        self.message = "    \n" + message + '\n'
 
     def run_server(self):
         """
@@ -55,6 +55,7 @@ class FakeMySQLServer(object):
             server_socket.listen(5)
 
             while True:
+                client = None
                 try:
                     # 循环接收客户端的连接
                     client, _ = server_socket.accept()
