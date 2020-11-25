@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 
 name = os.path.basename(__file__)
 
-InsertStat = namedtuple('InsertStat','start_at end_at tps cost_time')
+InsertStat = namedtuple('InsertStat','start_at end_at rows cost_time')
 
 def parser_cmd_args():
     """
@@ -74,28 +74,31 @@ def insert(host="127.0.0.1",port=3306,user="apuser",password="mtls@0352",databas
     end_at = datetime.now()
 
     # 微秒级的精度
-    cost_time = (end_at - start_at).microseconds
-    tps = (rows/cost_time) * 1000000
-    stat = InsertStat(start_at=start_at,end_at=end_at,tps=tps,cost_time=cost_time/1000000)
+    cost_time = (end_at - start_at).total_seconds()
+    stat = InsertStat(start_at=start_at,end_at=end_at,rows=rows,cost_time=cost_time)
     return stat
 
 def create_report(stats:InsertStat=None):
     """
     """
     assert stats is not None
-    sum_tps = 0
+    sum_rows = 0
     sum_cost_time = 0
     for s in stats:
-        if hasattr(s,'tps'):
-            sum_tps = sum_tps + s.tps
+        if hasattr(s,'rows'):
+            sum_rows = sum_rows + s.rows
             sum_cost_time = sum_cost_time + s.cost_time
     
-    tps = sum_tps / len(stats)
-    cost_time = sum_cost_time / len(stats)
+    avg_cost_time = sum_cost_time / len(stats)
+
+    if avg_cost_time == 0:
+        # 后面 avg_cost_time 要做为分母，所以当这个值是 0 的时候把它设置为 1
+        avg_cost_time = 1
+    tps = sum_rows / avg_cost_time
 
     print("-"*36)
     print(f"|tps = {tps}")
-    print(f"|cost_time = {cost_time}")
+    print(f"|cost_time = {avg_cost_time}")
     print("-"*36)
 
 
