@@ -118,7 +118,8 @@ def main():
             for future in concurrent.futures.as_completed(futures):
                 # 取得“期物的值”以此来触发执行
                 _ = future.result()
-                stats.append(_)
+                if _ is not None:
+                    stats.append(_)
     else:
         # 单进程压力测试
         tmp = insert(args.host,args.port,args.user,args.password,args.database,args.table,args.rows)
