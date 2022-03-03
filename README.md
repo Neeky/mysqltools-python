@@ -55,13 +55,7 @@
    You should consider upgrading via the 'pip install --upgrade pip' command.
    ```
 
-   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtls-montir,mtls-backup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
-   ```
-   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
-   ```
-   ```
-   44
-   ```
+   安装完成后你就可以使用mysqltools-python提供的命令行工具了。
 
    ---
 
