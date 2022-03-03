@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+#-*- coding: UTF-8 -*-
+#author: 蒋乐兴 1721900707@qq.com
+
+
+import os
+import time
+import logging
+import argparse
+
+from mtls.sessions import create_sessions
+
+
+name = os.path.basename(__file__)
+
+def parser_cmd_args():
+    """
+    处理命令行参数
+    """
+    args = argparse.ArgumentParser(name)
+    args.add_argument("--host",type=str,default="127.0.0.1",help="MySQL 主机 IP ")
+    args.add_argument("--port",type=int,default=3306,help="MySQL 端口")
+    args.add_argument("--user",type=str,default="appuser",help="用户名")
+    args.add_argument("--password",type=str,default="mtls@0352",help="密码")
+    args.add_argument("--sql",type=str,default="select 'mysqltools-python' as 'this is ' ;",help="sql statement")
+    args.add_argument("--sessions",type=int,default=7)
+    args.add_argument("--duration",type=int,default=60)
+    return args.parse_args()
+
+
+if __name__ == "__main__":
+    try:
+        args = parser_cmd_args()
+        create_sessions(args.user,args.password,args.host,args.port,args.sql,args.sessions)
+        time.sleep(args.duration)
+        print("done!")
+    except KeyboardInterrupt as err:
+        print("bye bye .")
+    except Exception as err:
+        logging.exception(err)
+    
+    

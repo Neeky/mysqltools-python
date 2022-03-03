@@ -12,6 +12,7 @@ bin/mtls-http
 bin/mtls-kill-all-conections
 bin/mtls-log
 bin/mtls-monitor
+bin/mtls-multi-session
 bin/mtls-perf-bench
 bin/mtls-random-passwd
 bin/mtls-rows-diff
@@ -31,6 +32,7 @@ mtls/innodb_statu.py
 mtls/inspection.py
 mtls/mgr.py
 mtls/replication.py
+mtls/sessions.py
 mtls/statu.py
 mtls/values.py
 mtls/variable.py
