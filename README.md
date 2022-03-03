@@ -11,6 +11,7 @@
 - [mysqltools-python权威指南](#mysqltools-python权威指南)
   - [关于](#关于)
   - [安装](#安装)
+  - [模拟多个会话连接MySQL](#模拟多个会话连接mysql)
   - [自动向表中插入随机数据](#自动向表中插入随机数据)
   - [数据库监控项采集](#数据库监控项采集)
   - [数据库备份](#数据库备份)
@@ -31,25 +32,6 @@
 
 ## 关于
    **1、** mysqltools-python 是一个 专为 dba 服务的 python 工具包，主要的目的在于把一些锁定程序化，一方面可以提高劳动生产率，另一方面可以节约 dba 的时间。
-
-   ---
-
-   **2、** 目前工具包中集成的工具列表
-   
-   |**工具名**|**功能说明**|
-   |---------|-----------|
-   |mtls-monitor| 监控项采集 |
-   |mtls-backup|  自动化备份数据库 |
-   |mtls-delete-rows| 分批(温和)删除大表中的行|
-   |mtls-file-truncate| 分批(温和)的截断物理文件|
-   |mtls-big-files| 查询出给定目录下的大文件名|
-   |mtls-http| tcp(http)端口连通性测试|
-   |mtls-log | 慢查询日志切片|
-   |mtls-perf-bench| 数据库跑分工具(开发中)|
-   |mtls-kill-all-connections | 杀死所有的客户端连接|
-   |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
-   |mtls-file-stat| 表的最晚更新时间统计|
-   |mtls-expired-tables|找出长时间没有使用过的表| 
 
    ---
 
@@ -82,6 +64,57 @@
    ```
 
    ---
+
+## 模拟多个会话连接MySQL
+模拟多个会话连接进 MySQL，假设我需要 100 个会话连接到 MySQL ，并且每一个会话都不停止的执行 `select * from mysql.user` 。
+```bash
+mysqltools-python % mtls-multi-session --host=192.168.100.100 --port=3306 --user=appuser --password=xxx --sql="select * from mysql.user" --sessions=100
+```
+通过 show processlist 检查有没有连接成功。
+```sql
+show processlist;
++-----+---------+--------------------+------+---------+------+-------+------------------+
+| Id  | User    | Host               | db   | Command | Time | State | Info             |
++-----+---------+--------------------+------+---------+------+-------+------------------+
+| 122 | appuser | 172.16.234.1:51006 | NULL | Sleep   |    0 |       | NULL             |
+| 123 | appuser | 172.16.234.1:51007 | NULL | Sleep   |    0 |       | NULL             |
+| 124 | appuser | 172.16.234.1:51008 | NULL | Sleep   |    1 |       | NULL             |
+| 125 | appuser | 172.16.234.1:51009 | NULL | Sleep   |    1 |       | NULL             |
+| 126 | appuser | 172.16.234.1:51010 | NULL | Sleep   |    1 |       | NULL             |
+| 127 | appuser | 172.16.234.1:51011 | NULL | Sleep   |    0 |       | NULL             |
+...
+| 218 | appuser | 172.16.234.1:51101 | NULL | Sleep   |    1 |       | NULL             |
+| 219 | appuser | 172.16.234.1:51102 | NULL | Sleep   |    1 |       | NULL             |
+| 220 | appuser | 172.16.234.1:51103 | NULL | Sleep   |    1 |       | NULL             |
+| 221 | appuser | 172.16.234.1:51104 | NULL | Sleep   |    1 |       | NULL             |
+| 222 | appuser | 172.16.234.1:51105 | NULL | Sleep   |    1 |       | NULL             |
++-----+---------+--------------------+------+---------+------+-------+------------------+
+101 rows in set (0.00 sec)
+```
+打开 general_log 可以看到如下内容
+```sql
+2022-03-03T20:51:16.192633+08:00	  272 Query	select * from mysql.user
+2022-03-03T20:51:16.199083+08:00	  279 Query	select * from mysql.user
+2022-03-03T20:51:16.201551+08:00	  243 Query	select * from mysql.user
+2022-03-03T20:51:16.201836+08:00	  259 Query	select * from mysql.user
+2022-03-03T20:51:16.208231+08:00	  226 Query	select * from mysql.user
+2022-03-03T20:51:16.210666+08:00	  225 Query	select * from mysql.user
+2022-03-03T20:51:16.212934+08:00	  257 Query	select * from mysql.user
+2022-03-03T20:51:16.215569+08:00	  230 Query	select * from mysql.user
+2022-03-03T20:51:16.215577+08:00	  249 Query	select * from mysql.user
+2022-03-03T20:51:16.220761+08:00	  246 Query	select * from mysql.user
+2022-03-03T20:51:16.222372+08:00	  235 Query	select * from mysql.user
+2022-03-03T20:51:16.226119+08:00	  262 Query	select * from mysql.user
+2022-03-03T20:51:16.232635+08:00	  273 Query	select * from mysql.user
+2022-03-03T20:51:16.234286+08:00	  247 Query	select * from mysql.user
+2022-03-03T20:51:16.235355+08:00	  231 Query	select * from mysql.user
+2022-03-03T20:51:16.259882+08:00	  254 Query	select * from mysql.user
+2022-03-03T20:51:16.262224+08:00	  227 Query	select * from mysql.user
+2022-03-03T20:51:16.262786+08:00	  255 Query	select * from mysql.user
+2022-03-03T20:51:16.263377+08:00	  252 Query	select * from mysql.user
+```
+
+---
 
 ## 自动向表中插入随机数据
 mtls-auto-fill 启动的时候它会自己去你读的表结构，根据列的数据类型为其生成随机的数据并将它插入到表中，另外它是直接多进程并行插入的。
