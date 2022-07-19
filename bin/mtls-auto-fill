@@ -14,6 +14,7 @@ from mysql import connector
 from datetime import datetime
 from collections import namedtuple
 from mtls.values import InsertSQL,TableMeta
+from mysql.connector.errors import IntegrityError
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 
 
@@ -62,8 +63,12 @@ def insert(host="127.0.0.1",port=3306,user="apuser",password="mtls@0352",databas
 
         for i in range(rows):
             sql,args,*_ = ist[i]
-            cursor.execute(sql,args)
-            cnx.commit()
+            try:
+                cursor.execute(sql,args)
+                cnx.commit()
+            except IntegrityError as err:
+                # 主键重复时不用管
+                pass
     
     except Exception as err:
         logging.exception(str(err))

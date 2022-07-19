@@ -14,6 +14,7 @@ bin/mtls-log
 bin/mtls-monitor
 bin/mtls-multi-session
 bin/mtls-perf-bench
+bin/mtls-ps-mem
 bin/mtls-random-passwd
 bin/mtls-rows-diff
 bin/mtls-sql-distribution
@@ -38,3 +39,5 @@ mtls/values.py
 mtls/variable.py
 mtls/kits/__init__.py
 mtls/kits/fileformat.py
+mtls/ps/__init__.py
+mtls/ps/mem.py
