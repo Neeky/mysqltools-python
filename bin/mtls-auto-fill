@@ -35,11 +35,12 @@ def parser_cmd_args():
     args.add_argument("--table",type=str,default="t",help="表名")
     args.add_argument("--rows",type=int,default=100,help="要插入的行数")
     args.add_argument("--process",type=int,default=1,help="并发的进程数")
+    args.add_argument("--ssl_disabled",type=bool, default=False, help="是否禁用 SSL")
     args.add_argument("action",choices=('review','execute'))
     return args.parse_args()
 
 
-def insert(host="127.0.0.1",port=3306,user="apuser",password="mtls@0352",database="tempdb",table="t",rows=100):
+def insert(host="127.0.0.1",port=3306,user="apuser",password="mtls@0352",ssl_disabled=False,database="tempdb",table="t",rows=100):
     """
 
     """
@@ -58,7 +59,7 @@ def insert(host="127.0.0.1",port=3306,user="apuser",password="mtls@0352",databas
     cnx = None
     start_at = datetime.now()
     try:
-        cnx = connector.connect(host=host,port=port,user=user,password=password)
+        cnx = connector.connect(host=host,port=port,user=user,password=password,ssl_disabled=ssl_disabled)
         cursor = cnx.cursor()
 
         for i in range(rows):
@@ -127,7 +128,7 @@ def main():
                     stats.append(_)
     else:
         # 单进程压力测试
-        tmp = insert(args.host,args.port,args.user,args.password,args.database,args.table,args.rows)
+        tmp = insert(args.host,args.port,args.user,args.password,args.ssl_disabled,args.database,args.table,args.rows)
         stats.append(tmp)
 
     print("\nReport:")
